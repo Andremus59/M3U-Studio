@@ -1,0 +1,5 @@
+{
+  "name": "M3U Studio",
+  "description": "Gestionnaire, analyseur, testeur de flux et lecteur de playlists IPTV (.m3u / .m3u8)",
+  "requestFramePermissions": []
+}
