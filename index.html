@@ -92,10 +92,7 @@
       font-weight: 600;
       letter-spacing: 0.02em;
     }
-    .btn-lang:hover:not(:disabled) {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-    }
+    .btn-lang:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
     .btn-sm { padding: 6px 10px; font-size: 0.77rem; border-radius: 7px; }
     .btn-xs { padding: 5px 8px; font-size: 0.74rem; border-radius: 6px; }
 
@@ -171,6 +168,7 @@
       background: var(--bg-input); border: 1px solid var(--border);
       border-radius: 8px; padding: 9px 12px; font-size: 0.86rem; outline: none; max-width: 260px;
     }
+    .select-sm { padding: 5px 9px; font-size: 0.77rem; border-radius: 7px; max-width: 180px; }
     .select:focus { border-color: var(--border-focus); }
 
     .toggle-btn.active { background: var(--warning-soft); border-color: rgba(245, 158, 11, 0.45); color: #fbbf24; }
@@ -233,6 +231,7 @@
       width: 48px; height: 48px; border-radius: 9px; background: var(--bg-input);
       border: 1px solid var(--border); flex-shrink: 0; display: grid; place-items: center; overflow: hidden;
     }
+    .logo-box-sm { width: 38px; height: 38px; border-radius: 8px; }
     .logo-box img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
     .logo-fallback { font-weight: 700; font-size: 0.85rem; color: var(--text-muted); user-select: none; }
 
@@ -283,23 +282,25 @@
     .empty-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
 
     .modal-backdrop {
-      position: fixed; inset: 0; background: rgba(5, 8, 14, 0.8); backdrop-filter: blur(6px);
+      position: fixed; inset: 0; background: rgba(5, 8, 14, 0.82); backdrop-filter: blur(6px);
       z-index: 100; display: none; align-items: center; justify-content: center; padding: 18px;
     }
     .modal-backdrop.open { display: flex; }
 
     .modal {
-      width: 100%; max-width: 820px; max-height: 90vh; background: var(--bg-panel); border: 1px solid var(--border);
+      width: 100%; max-width: 880px; max-height: 92vh; background: var(--bg-panel); border: 1px solid var(--border);
       border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column;
     }
     .modal-header {
-      padding: 14px 18px; border-bottom: 1px solid var(--border);
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0;
     }
+    .modal-header-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+    .modal-header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
     .modal-body { padding: 18px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-    .modal-title-wrap { min-width: 0; }
-    .modal-title { font-size: 1rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .modal-subtitle { font-size: 0.76rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .modal-title-wrap { min-width: 0; flex: 1; }
+    .modal-title { font-size: 0.98rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .modal-subtitle { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .help-section {
       background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
@@ -324,7 +325,7 @@
     }
     .video-wrap video { width: 100%; height: 100%; display: block; }
     .player-status {
-      position: absolute; inset: 0; background: rgba(11, 15, 23, 0.9);
+      position: absolute; inset: 0; background: rgba(11, 15, 23, 0.92);
       display: none; flex-direction: column; align-items: center; justify-content: center;
       text-align: center; padding: 24px; gap: 10px;
     }
@@ -332,8 +333,21 @@
     .player-status p { font-size: 0.86rem; color: var(--text-muted); max-width: 500px; }
     .player-status-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 
+    .player-controls-bar {
+      padding: 10px 16px;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .player-telemetry { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .player-tools { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
     .modal-footer {
-      padding: 12px 18px; border-top: 1px solid var(--border);
+      padding: 11px 16px; border-top: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; flex-shrink: 0;
     }
 
@@ -506,7 +520,7 @@
 
   <!-- Modal Aide -->
   <div id="helpModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
-    <div class="modal" style="max-width: 740px;">
+    <div class="modal" style="max-width: 760px;">
       <div class="modal-header">
         <div>
           <div id="helpModalTitle" class="modal-title" data-i18n="helpModalTitle">Guide d'utilisation — M3U Studio</div>
@@ -581,32 +595,59 @@
     </div>
   </div>
 
-  <!-- Modal Lecteur HLS -->
+  <!-- Modal Lecteur HLS Avancé -->
   <div id="playerModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalChannelTitle">
     <div class="modal">
       <div class="modal-header">
-        <div class="modal-title-wrap">
-          <div id="modalChannelTitle" class="modal-title" data-i18n="playerModalDefaultTitle">Prévisualisation</div>
-          <div id="modalChannelUrl" class="modal-subtitle"></div>
+        <div class="modal-header-left">
+          <div id="modalLogoBox" class="logo-box logo-box-sm"></div>
+          <div class="modal-title-wrap">
+            <div id="modalChannelTitle" class="modal-title" data-i18n="playerModalDefaultTitle">Prévisualisation</div>
+            <div id="modalChannelMeta" class="modal-subtitle"></div>
+          </div>
         </div>
-        <button id="btnCloseModal" class="btn btn-sm" type="button" data-i18n="closeBtn">Fermer ✕</button>
+        <div class="modal-header-actions">
+          <button id="btnModalFav" class="btn btn-sm fav-btn" type="button" title="Favori">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </button>
+          <button id="btnModalPrev" class="btn btn-sm" type="button" data-i18n-title="prevChannelTitle">◀</button>
+          <button id="btnModalNext" class="btn btn-sm" type="button" data-i18n-title="nextChannelTitle">▶</button>
+          <button id="btnCloseModal" class="btn btn-sm" type="button" data-i18n="closeBtn">Fermer ✕</button>
+        </div>
       </div>
 
-      <div class="video-wrap">
+      <div id="videoWrap" class="video-wrap">
         <video id="videoPlayer" controls playsinline></video>
         <div id="playerStatus" class="player-status">
           <strong id="playerStatusTitle"></strong>
           <p id="playerStatusMessage"></p>
           <div class="player-status-actions">
+            <button id="btnStatusReload" class="btn btn-sm" type="button" data-i18n="reloadStreamBtn">↻ Recharger</button>
             <button id="btnModalSendPlayer" class="btn btn-success btn-sm" type="button" data-i18n="sendToPlayerBtn">Envoyer vers lecteur (.m3u)</button>
             <button id="btnCopyFromPlayer" class="btn btn-primary btn-sm" type="button" data-i18n="copyUrlBtn">Copier l'URL</button>
           </div>
         </div>
       </div>
 
+      <div class="player-controls-bar">
+        <div class="player-telemetry">
+          <span id="badgeLive" class="badge badge-ok" style="display: none;">● HLS</span>
+          <span id="badgeResolution" class="badge" style="display: none;"></span>
+          <span id="badgeBitrate" class="badge" style="display: none;"></span>
+          <select id="qualitySelect" class="select select-sm" style="display: none;" data-i18n-aria="qualityAria"></select>
+          <select id="audioSelect" class="select select-sm" style="display: none;" data-i18n-aria="audioAria"></select>
+        </div>
+        <div class="player-tools">
+          <button id="btnPlayerReload" class="btn btn-xs" type="button" data-i18n-title="reloadStreamTitle" data-i18n="reloadStreamBtn">↻ Recharger</button>
+          <button id="btnPlayerPip" class="btn btn-xs" type="button" data-i18n-title="pipTitle" data-i18n="pipBtn">PiP</button>
+          <button id="btnPlayerSnapshot" class="btn btn-xs" type="button" data-i18n-title="snapshotTitle" data-i18n="snapshotBtn">📷 Capture</button>
+          <button id="btnPlayerFullscreen" class="btn btn-xs" type="button" data-i18n-title="fullscreenTitle" data-i18n="fullscreenBtn">⛶ Plein écran</button>
+        </div>
+      </div>
+
       <div class="modal-footer">
         <span style="font-size: 0.78rem; color: var(--text-muted);" data-i18n-html="playerFooterHint">
-          Cliquez sur <strong>Envoyer vers lecteur (.m3u)</strong>, puis ouvrez le fichier téléchargé dans VLC ou MPV.
+          Cliquez sur <strong>Envoyer vers lecteur (.m3u)</strong>, puis ouvrez le fichier téléchargé dans VLC ou MPV. Raccourcis : <code>←/→</code>, <code>Espace</code>, <code>M</code>, <code>F</code>, <code>P</code>.
         </span>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button id="btnFooterSendPlayer" class="btn btn-success btn-sm" type="button" data-i18n="sendToPlayerBtn">Envoyer vers lecteur (.m3u)</button>
@@ -768,10 +809,20 @@
               </ul>
             </div>
             <div class="help-section">
-              <h3>4. Lire dans le navigateur ou dans VLC / MPV (Windows 11)</h3>
+              <h3>4. Utiliser le lecteur intégré (Viewer)</h3>
               <ul>
-                <li><strong>▶ Lire :</strong> prévisualisation intégrée (compatible uniquement avec certains flux HLS <code>.m3u8</code> autorisés par le navigateur).</li>
-                <li><strong>Envoyer vers lecteur (.m3u) :</strong> par sécurité, un navigateur web ne peut pas lancer directement un logiciel comme VLC. Ce bouton télécharge donc un mini fichier <code>.m3u</code> dans votre dossier <em>Téléchargements</em> (ou en haut à droite du navigateur).</li>
+                <li><strong>Zapping direct (<code>◀</code> / <code>▶</code>) :</strong> passez à la chaîne précédente ou suivante de votre liste filtrée sans fermer le lecteur.</li>
+                <li><strong>Favori en direct (<code>★</code>) :</strong> ajoutez ou retirez la chaîne en cours de lecture de vos favoris directement depuis l'en-tête du lecteur.</li>
+                <li><strong>Qualité vidéo &amp; Audio :</strong> sélectionnez la résolution (<em>Auto</em>, <em>1080p</em>, <em>720p</em>…) et la piste audio lorsque le flux HLS en propose plusieurs.</li>
+                <li><strong>Télémétrie en temps réel :</strong> affiche la résolution vidéo active (ex. <code>1920×1080</code>) et le débit (<code>Mbps</code> / <code>kbps</code>).</li>
+                <li><strong>Outils rapides :</strong> <strong>↻ Recharger</strong> pour relancer un flux coupé, <strong>PiP</strong> pour détacher la vidéo en mini-fenêtre flottante, <strong>📷 Capture</strong> pour enregistrer une image <code>.png</code> (si autorisé par CORS), et <strong>⛶ Plein écran</strong>.</li>
+                <li><strong>Raccourcis clavier :</strong> <code>←</code> / <code>→</code> (chaîne préc./suiv.), <code>Espace</code> ou <code>K</code> (lecture/pause), <code>M</code> (muet), <code>F</code> (plein écran), <code>P</code> (PiP), <code>Échap</code> (fermer).</li>
+              </ul>
+            </div>
+            <div class="help-section">
+              <h3>5. Ouvrir dans VLC / MPV (Windows 11) &amp; exporter</h3>
+              <ul>
+                <li><strong>Envoyer vers lecteur (.m3u) :</strong> par sécurité, un navigateur web ne peut pas lancer directement un logiciel comme VLC. Ce bouton télécharge un mini fichier <code>.m3u</code> dans votre dossier <em>Téléchargements</em> (ou en haut à droite du navigateur).</li>
                 <li><strong>Si le double-clic sur le <code>.m3u</code> n'ouvre pas VLC :</strong> sur Windows 11, faites <strong>Clic droit sur le fichier <code>.m3u</code> → Ouvrir avec → Choisir une autre application → VLC media player → Toujours</strong> (ou configurez <code>.m3u</code> dans <em>Paramètres → Applications → Applications par défaut</em>).</li>
                 <li><strong>Ouverture rapide (Chrome / Edge) :</strong> une fois VLC associé, faites un clic droit sur le fichier dans la barre de téléchargement du navigateur et cochez <em>« Toujours ouvrir les fichiers de ce type »</em>.</li>
                 <li><strong>Exporter filtrées / sélection :</strong> génère un nouveau fichier <code>.m3u</code> valide contenant uniquement les chaînes choisies.</li>
@@ -797,8 +848,23 @@
           toRemoveLabel: 'à retirer',
 
           playerModalDefaultTitle: 'Prévisualisation',
+          prevChannelTitle: 'Chaîne précédente (←)',
+          nextChannelTitle: 'Chaîne suivante (→)',
+          qualityAuto: 'Qualité : Auto',
+          qualityLabel: 'Qualité',
+          qualityAria: 'Qualité vidéo',
+          audioLabel: 'Audio',
+          audioAria: 'Piste audio',
+          reloadStreamBtn: '↻ Recharger',
+          reloadStreamTitle: 'Recharger le flux',
+          pipBtn: 'PiP',
+          pipTitle: 'Image dans l’image (P)',
+          snapshotBtn: '📷 Capture',
+          snapshotTitle: "Capturer une image de la vidéo",
+          fullscreenBtn: '⛶ Plein écran',
+          fullscreenTitle: 'Plein écran (F)',
           copyUrlBtn: "Copier l'URL",
-          playerFooterHint: 'Cliquez sur <strong>Envoyer vers lecteur (.m3u)</strong>, puis ouvrez le fichier téléchargé dans VLC ou MPV.',
+          playerFooterHint: 'Cliquez sur <strong>Envoyer vers lecteur (.m3u)</strong>, puis ouvrez le fichier téléchargé dans VLC ou MPV. Raccourcis : <code>←/→</code>, <code>Espace</code>, <code>M</code>, <code>F</code>, <code>P</code>.',
           playerMixedTitle: 'Flux HTTP bloqué par sécurité (Contenu Mixte)',
           playerMixedMsg: 'Votre page est ouverte en HTTPS mais ce flux est en HTTP. Utilisez "Envoyer vers lecteur (.m3u)".',
           playerConnectingTitle: 'Connexion au flux...',
@@ -809,6 +875,9 @@
           playerErrorMedia: 'Format vidéo/audio incompatible avec le navigateur. Utilisez "Envoyer vers lecteur (.m3u)".',
           playerUnsupportedTitle: 'Lecteur HLS indisponible (hors-ligne ou format non supporté)',
           playerUnsupportedMsg: 'Utilisez "Envoyer vers lecteur (.m3u)" pour lancer VLC ou MPV.',
+          toastPipUnsupported: 'Le mode Image dans l’image (PiP) n’est pas disponible sur ce navigateur.',
+          toastSnapshotSaved: 'Capture "{filename}" enregistrée !',
+          toastSnapshotFailed: 'Capture impossible : flux vidéo vide ou bloqué par la sécurité CORS.',
 
           errEmptyFile: 'Le contenu du fichier est vide.',
           errNoExtInf: 'En-tête #EXTM3U détecté, mais aucune chaîne valide (#EXTINF + URL) n’a été trouvée dans ce fichier.',
@@ -987,9 +1056,19 @@
               </ul>
             </div>
             <div class="help-section">
-              <h3>4. Watch in browser or in VLC / MPV (Windows 11)</h3>
+              <h3>4. Using the built-in player (Viewer)</h3>
               <ul>
-                <li><strong>▶ Play:</strong> built-in preview player (only supports browser-compatible HLS <code>.m3u8</code> streams).</li>
+                <li><strong>Quick zapping (<code>◀</code> / <code>▶</code>):</strong> switch to the previous or next channel in your filtered list without closing the player.</li>
+                <li><strong>Live favorite toggle (<code>★</code>):</strong> add or remove the currently playing channel from favorites right from the player header.</li>
+                <li><strong>Video quality &amp; Audio:</strong> select stream resolution (<em>Auto</em>, <em>1080p</em>, <em>720p</em>…) and audio track when multiple options are available in the HLS manifest.</li>
+                <li><strong>Live telemetry:</strong> displays the active video resolution (e.g. <code>1920×1080</code>) and bitrate (<code>Mbps</code> / <code>kbps</code>).</li>
+                <li><strong>Quick tools:</strong> <strong>↻ Reload</strong> to restart a stalled stream, <strong>PiP</strong> for a floating Picture-in-Picture mini window, <strong>📷 Snapshot</strong> to save a <code>.png</code> frame (when allowed by CORS), and <strong>⛶ Fullscreen</strong>.</li>
+                <li><strong>Keyboard shortcuts:</strong> <code>←</code> / <code>→</code> (prev/next channel), <code>Space</code> or <code>K</code> (play/pause), <code>M</code> (mute), <code>F</code> (fullscreen), <code>P</code> (PiP), <code>Esc</code> (close).</li>
+              </ul>
+            </div>
+            <div class="help-section">
+              <h3>5. Open in VLC / MPV (Windows 11) &amp; export</h3>
+              <ul>
                 <li><strong>Send to player (.m3u):</strong> for security reasons, a web browser cannot launch external apps like VLC directly. This button downloads a small <code>.m3u</code> file into your <em>Downloads</em> folder (or top-right browser downloads bar).</li>
                 <li><strong>If double-clicking the <code>.m3u</code> file doesn't open VLC:</strong> on Windows 11, <strong>Right-click the <code>.m3u</code> file → Open with → Choose another app → VLC media player → Always</strong> (or set <code>.m3u</code> in <em>Settings → Apps → Default apps</em>).</li>
                 <li><strong>Quick open (Chrome / Edge):</strong> once VLC is associated, right-click the downloaded file in the browser's downloads bar and select <em>"Always open files of this type"</em>.</li>
@@ -1016,8 +1095,23 @@
           toRemoveLabel: 'to remove',
 
           playerModalDefaultTitle: 'Preview',
+          prevChannelTitle: 'Previous channel (←)',
+          nextChannelTitle: 'Next channel (→)',
+          qualityAuto: 'Quality: Auto',
+          qualityLabel: 'Quality',
+          qualityAria: 'Video quality',
+          audioLabel: 'Audio',
+          audioAria: 'Audio track',
+          reloadStreamBtn: '↻ Reload',
+          reloadStreamTitle: 'Reload stream',
+          pipBtn: 'PiP',
+          pipTitle: 'Picture-in-Picture (P)',
+          snapshotBtn: '📷 Snapshot',
+          snapshotTitle: 'Capture a video frame',
+          fullscreenBtn: '⛶ Fullscreen',
+          fullscreenTitle: 'Fullscreen (F)',
           copyUrlBtn: 'Copy URL',
-          playerFooterHint: 'Click <strong>Send to player (.m3u)</strong>, then open the downloaded file in VLC or MPV.',
+          playerFooterHint: 'Click <strong>Send to player (.m3u)</strong>, then open the downloaded file in VLC or MPV. Shortcuts: <code>←/→</code>, <code>Space</code>, <code>M</code>, <code>F</code>, <code>P</code>.',
           playerMixedTitle: 'HTTP stream blocked by security (Mixed Content)',
           playerMixedMsg: 'This page is served over HTTPS while the stream uses plain HTTP. Use "Send to player (.m3u)".',
           playerConnectingTitle: 'Connecting to stream...',
@@ -1028,6 +1122,9 @@
           playerErrorMedia: 'Video/audio format incompatible with the browser. Use "Send to player (.m3u)".',
           playerUnsupportedTitle: 'HLS player unavailable (offline or unsupported format)',
           playerUnsupportedMsg: 'Use "Send to player (.m3u)" to launch VLC or MPV.',
+          toastPipUnsupported: 'Picture-in-Picture (PiP) is not supported in this browser.',
+          toastSnapshotSaved: 'Snapshot "{filename}" saved!',
+          toastSnapshotFailed: 'Snapshot failed: empty video frame or blocked by CORS security.',
 
           errEmptyFile: 'The file content is empty.',
           errNoExtInf: '#EXTM3U header detected, but no valid channel (#EXTINF + URL) was found in this file.',
@@ -1215,17 +1312,33 @@
         btnDedupBoth: document.getElementById('btnDedupBoth'),
 
         playerModal: document.getElementById('playerModal'),
+        modalLogoBox: document.getElementById('modalLogoBox'),
         modalChannelTitle: document.getElementById('modalChannelTitle'),
-        modalChannelUrl: document.getElementById('modalChannelUrl'),
+        modalChannelMeta: document.getElementById('modalChannelMeta'),
+        btnModalFav: document.getElementById('btnModalFav'),
+        btnModalPrev: document.getElementById('btnModalPrev'),
+        btnModalNext: document.getElementById('btnModalNext'),
+        videoWrap: document.getElementById('videoWrap'),
         videoPlayer: document.getElementById('videoPlayer'),
         playerStatus: document.getElementById('playerStatus'),
         playerStatusTitle: document.getElementById('playerStatusTitle'),
         playerStatusMessage: document.getElementById('playerStatusMessage'),
+        btnStatusReload: document.getElementById('btnStatusReload'),
         btnCloseModal: document.getElementById('btnCloseModal'),
         btnModalSendPlayer: document.getElementById('btnModalSendPlayer'),
         btnCopyFromPlayer: document.getElementById('btnCopyFromPlayer'),
         btnFooterSendPlayer: document.getElementById('btnFooterSendPlayer'),
         btnFooterCopy: document.getElementById('btnFooterCopy'),
+
+        badgeLive: document.getElementById('badgeLive'),
+        badgeResolution: document.getElementById('badgeResolution'),
+        badgeBitrate: document.getElementById('badgeBitrate'),
+        qualitySelect: document.getElementById('qualitySelect'),
+        audioSelect: document.getElementById('audioSelect'),
+        btnPlayerReload: document.getElementById('btnPlayerReload'),
+        btnPlayerPip: document.getElementById('btnPlayerPip'),
+        btnPlayerSnapshot: document.getElementById('btnPlayerSnapshot'),
+        btnPlayerFullscreen: document.getElementById('btnPlayerFullscreen'),
 
         toastContainer: document.getElementById('toastContainer')
       };
@@ -1260,7 +1373,9 @@
         if (!el.btnLoadUrl.disabled) {
           el.btnLoadUrl.textContent = t('loadUrlBtn');
         }
-        if (!state.activeChannel) {
+        if (state.activeChannel) {
+          updatePlayerHeader(state.activeChannel);
+        } else {
           el.modalChannelTitle.textContent = t('playerModalDefaultTitle');
         }
       }
@@ -2182,6 +2297,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
 
         updateStats();
         renderChannelPage();
+        if (state.activeChannel) updatePlayerHeader(state.activeChannel);
       }
 
       function updateStats() {
@@ -2217,6 +2333,29 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         const words = (name || '?').trim().split(/\s+/);
         if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
         return name.slice(0, 2).toUpperCase() || 'TV';
+      }
+
+      function buildLogoElement(ch, targetBox) {
+        targetBox.innerHTML = '';
+        const fallbackSpan = document.createElement('span');
+        fallbackSpan.className = 'logo-fallback';
+        fallbackSpan.textContent = getInitials(ch.name);
+
+        if (ch.logo) {
+          const img = document.createElement('img');
+          img.src = ch.logo;
+          img.alt = '';
+          img.loading = 'lazy';
+          img.decoding = 'async';
+          img.referrerPolicy = 'no-referrer';
+          img.onerror = () => {
+            img.remove();
+            targetBox.appendChild(fallbackSpan);
+          };
+          targetBox.appendChild(img);
+        } else {
+          targetBox.appendChild(fallbackSpan);
+        }
       }
 
       function renderChannelPage() {
@@ -2303,25 +2442,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
 
           const logoBox = document.createElement('div');
           logoBox.className = 'logo-box';
-          const fallbackSpan = document.createElement('span');
-          fallbackSpan.className = 'logo-fallback';
-          fallbackSpan.textContent = getInitials(ch.name);
-
-          if (ch.logo) {
-            const img = document.createElement('img');
-            img.src = ch.logo;
-            img.alt = '';
-            img.loading = 'lazy';
-            img.decoding = 'async';
-            img.referrerPolicy = 'no-referrer';
-            img.onerror = () => {
-              img.remove();
-              logoBox.appendChild(fallbackSpan);
-            };
-            logoBox.appendChild(img);
-          } else {
-            logoBox.appendChild(fallbackSpan);
-          }
+          buildLogoElement(ch, logoBox);
 
           const info = document.createElement('div');
           info.className = 'channel-info';
@@ -2436,6 +2557,35 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         el.btnLastPage.disabled = state.page >= totalPages;
       }
 
+      function toggleChannelFavorite(channel) {
+        const key = getFavoriteKey(channel);
+        const added = !state.favorites.has(key);
+        if (added) state.favorites.add(key);
+        else state.favorites.delete(key);
+
+        saveFavorites();
+
+        const card = el.channelsContainer.querySelector(`.channel-card[data-uid="${channel.uid}"]`);
+        if (card) {
+          const favBtn = card.querySelector('.fav-btn');
+          if (favBtn) {
+            favBtn.classList.toggle('active', added);
+            favBtn.title = added ? t('removeFavTitle') : t('addFavTitle');
+            favBtn.querySelector('svg').setAttribute('fill', added ? 'currentColor' : 'none');
+          }
+        }
+
+        if (!added && state.favoritesOnly) {
+          applyFilters();
+        } else {
+          updateStats();
+        }
+
+        if (state.activeChannel && state.activeChannel.uid === channel.uid) {
+          updatePlayerFavButton(channel);
+        }
+      }
+
       // ============================
       // Delegated Card Clicks
       // ============================
@@ -2459,26 +2609,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         }
 
         if (e.target.closest('.fav-btn')) {
-          const favBtn = e.target.closest('.fav-btn');
-          const key = getFavoriteKey(channel);
-          if (state.favorites.has(key)) {
-            state.favorites.delete(key);
-            favBtn.classList.remove('active');
-            favBtn.title = t('addFavTitle');
-            favBtn.querySelector('svg').setAttribute('fill', 'none');
-            if (state.favoritesOnly) {
-              saveFavorites();
-              applyFilters();
-              return;
-            }
-          } else {
-            state.favorites.add(key);
-            favBtn.classList.add('active');
-            favBtn.title = t('removeFavTitle');
-            favBtn.querySelector('svg').setAttribute('fill', 'currentColor');
-          }
-          saveFavorites();
-          updateStats();
+          toggleChannelFavorite(channel);
           return;
         }
 
@@ -2578,12 +2709,24 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       }
 
       // ============================
-      // HLS Preview Player
+      // Advanced HLS Preview Player
       // ============================
       function setPlayerStatus(show, title = '', message = '') {
         el.playerStatus.classList.toggle('show', show);
         el.playerStatusTitle.textContent = title;
         el.playerStatusMessage.textContent = message;
+      }
+
+      function resetPlayerTelemetry() {
+        el.badgeLive.style.display = 'none';
+        el.badgeResolution.style.display = 'none';
+        el.badgeResolution.textContent = '';
+        el.badgeBitrate.style.display = 'none';
+        el.badgeBitrate.textContent = '';
+        el.qualitySelect.style.display = 'none';
+        el.qualitySelect.innerHTML = '';
+        el.audioSelect.style.display = 'none';
+        el.audioSelect.innerHTML = '';
       }
 
       function destroyHls() {
@@ -2594,14 +2737,89 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         el.videoPlayer.pause();
         el.videoPlayer.removeAttribute('src');
         el.videoPlayer.load();
+        resetPlayerTelemetry();
+      }
+
+      function updatePlayerFavButton(channel) {
+        const isFav = state.favorites.has(getFavoriteKey(channel));
+        el.btnModalFav.classList.toggle('active', isFav);
+        el.btnModalFav.title = isFav ? t('removeFavTitle') : t('addFavTitle');
+        el.btnModalFav.querySelector('svg').setAttribute('fill', isFav ? 'currentColor' : 'none');
+      }
+
+      function updatePlayerHeader(channel) {
+        buildLogoElement(channel, el.modalLogoBox);
+        el.modalChannelTitle.textContent = channel.name;
+
+        const idx = state.filtered.findIndex((c) => c.uid === channel.uid);
+        const posLabel = idx !== -1 ? ` • ${fmtNum(idx + 1)} / ${fmtNum(state.filtered.length)}` : '';
+        el.modalChannelMeta.textContent = `${channel.group}${posLabel} • ${channel.url}`;
+        el.modalChannelMeta.title = channel.url;
+
+        el.btnModalPrev.disabled = idx <= 0;
+        el.btnModalNext.disabled = idx === -1 || idx >= state.filtered.length - 1;
+        updatePlayerFavButton(channel);
+      }
+
+      function updateResolutionBadge() {
+        const w = el.videoPlayer.videoWidth;
+        const h = el.videoPlayer.videoHeight;
+        if (w > 0 && h > 0) {
+          el.badgeResolution.textContent = `${w}×${h}`;
+          el.badgeResolution.style.display = 'inline-flex';
+        }
+      }
+
+      function formatBitrate(bps) {
+        if (!bps || bps <= 0) return '';
+        if (bps >= 1000000) return `${(bps / 1000000).toFixed(1)} Mbps`;
+        return `${Math.round(bps / 1000)} kbps`;
+      }
+
+      function populateHlsSelectors(hls) {
+        if (hls.levels && hls.levels.length > 1) {
+          el.qualitySelect.innerHTML = '';
+          const autoOpt = document.createElement('option');
+          autoOpt.value = '-1';
+          autoOpt.textContent = t('qualityAuto');
+          el.qualitySelect.appendChild(autoOpt);
+
+          hls.levels.forEach((lvl, idx) => {
+            const opt = document.createElement('option');
+            opt.value = String(idx);
+            const res = lvl.height ? `${lvl.height}p` : `${t('qualityLabel')} ${idx + 1}`;
+            const br = formatBitrate(lvl.bitrate);
+            opt.textContent = br ? `${res} (${br})` : res;
+            el.qualitySelect.appendChild(opt);
+          });
+          el.qualitySelect.value = String(hls.currentLevel);
+          el.qualitySelect.style.display = 'inline-block';
+        } else {
+          el.qualitySelect.style.display = 'none';
+        }
+
+        if (hls.audioTracks && hls.audioTracks.length > 1) {
+          el.audioSelect.innerHTML = '';
+          hls.audioTracks.forEach((track, idx) => {
+            const opt = document.createElement('option');
+            opt.value = String(idx);
+            opt.textContent = track.name || track.lang || `${t('audioLabel')} ${idx + 1}`;
+            el.audioSelect.appendChild(opt);
+          });
+          el.audioSelect.value = String(hls.audioTrack);
+          el.audioSelect.style.display = 'inline-block';
+        } else {
+          el.audioSelect.style.display = 'none';
+        }
       }
 
       function openPlayerModal(channel) {
         destroyHls();
         state.activeChannel = channel;
-        el.modalChannelTitle.textContent = channel.name;
-        el.modalChannelUrl.textContent = channel.url;
+        updatePlayerHeader(channel);
         el.playerModal.classList.add('open');
+
+        el.btnPlayerPip.disabled = !(document.pictureInPictureEnabled && !el.videoPlayer.disablePictureInPicture);
 
         if (window.location.protocol === 'https:' && channel.url.startsWith('http://')) {
           setPlayerStatus(true, t('playerMixedTitle'), t('playerMixedMsg'));
@@ -2622,7 +2840,24 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
 
           hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
             setPlayerStatus(false);
+            el.badgeLive.style.display = 'inline-flex';
+            populateHlsSelectors(hlsInstance);
             el.videoPlayer.play().catch(() => {});
+          });
+
+          hlsInstance.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
+            const lvl = hlsInstance?.levels?.[data.level];
+            if (lvl) {
+              const br = formatBitrate(lvl.bitrate);
+              if (br) {
+                el.badgeBitrate.textContent = br;
+                el.badgeBitrate.style.display = 'inline-flex';
+              }
+            }
+          });
+
+          hlsInstance.on(Hls.Events.AUDIO_TRACKS_UPDATED, () => {
+            if (hlsInstance) populateHlsSelectors(hlsInstance);
           });
 
           hlsInstance.on(Hls.Events.ERROR, (event, data) => {
@@ -2636,7 +2871,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
             setPlayerStatus(true, t('playerErrorTitle'), msg);
             destroyHls();
           });
-        } else if (el.videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+        } else if (el.videoPlayer.canPlayType('application/vnd.apple.mpegurl') || channel.url.match(/\.(mp4|webm|ogg)(\?|$)/i)) {
           setPlayerStatus(false);
           el.videoPlayer.src = channel.url;
           el.videoPlayer.play().catch(() => {});
@@ -2645,11 +2880,97 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         }
       }
 
+      function zapChannel(offset) {
+        if (!state.activeChannel || state.filtered.length === 0) return;
+        const idx = state.filtered.findIndex((c) => c.uid === state.activeChannel.uid);
+        if (idx === -1) return;
+        const nextIdx = idx + offset;
+        if (nextIdx >= 0 && nextIdx < state.filtered.length) {
+          openPlayerModal(state.filtered[nextIdx]);
+        }
+      }
+
+      async function togglePictureInPicture() {
+        try {
+          if (document.pictureInPictureElement) {
+            await document.exitPictureInPicture();
+          } else if (document.pictureInPictureEnabled && el.videoPlayer.requestPictureInPicture) {
+            await el.videoPlayer.requestPictureInPicture();
+          } else {
+            showToast(t('toastPipUnsupported'));
+          }
+        } catch {
+          showToast(t('toastPipUnsupported'));
+        }
+      }
+
+      function togglePlayerFullscreen() {
+        const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+        if (fsEl) {
+          if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          }
+        } else if (el.videoPlayer.requestFullscreen) {
+          el.videoPlayer.requestFullscreen().catch(() => {});
+        } else if (el.videoPlayer.webkitRequestFullscreen) {
+          el.videoPlayer.webkitRequestFullscreen();
+        } else if (el.videoPlayer.webkitEnterFullscreen) {
+          el.videoPlayer.webkitEnterFullscreen();
+        }
+      }
+
+      function takeVideoSnapshot() {
+        const w = el.videoPlayer.videoWidth;
+        const h = el.videoPlayer.videoHeight;
+        if (!w || !h || !state.activeChannel) {
+          showToast(t('toastSnapshotFailed'));
+          return;
+        }
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(el.videoPlayer, 0, 0, w, h);
+
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              showToast(t('toastSnapshotFailed'));
+              return;
+            }
+            const base = sanitizeChannelFilename(state.activeChannel.name).replace(/\.m3u$/, '');
+            const filename = `${base}-capture.png`;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 4000);
+            showToast(t('toastSnapshotSaved', { filename }));
+          }, 'image/png');
+        } catch {
+          showToast(t('toastSnapshotFailed'));
+        }
+      }
+
       function closePlayerModal() {
+        const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+        if (fsEl) {
+          if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+          else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        }
+        if (document.pictureInPictureElement === el.videoPlayer) {
+          document.exitPictureInPicture().catch(() => {});
+        }
         el.playerModal.classList.remove('open');
         destroyHls();
         state.activeChannel = null;
         el.modalChannelTitle.textContent = t('playerModalDefaultTitle');
+        el.modalChannelMeta.textContent = '';
       }
 
       // ============================
@@ -2847,16 +3168,76 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         goToPage(Math.max(1, Math.ceil(state.filtered.length / state.pageSize)));
       });
 
+      // Player Modal & Advanced Controls Events
+      el.videoPlayer.addEventListener('loadedmetadata', updateResolutionBadge);
+      el.videoPlayer.addEventListener('resize', updateResolutionBadge);
+
+      el.qualitySelect.addEventListener('change', (e) => {
+        if (hlsInstance) hlsInstance.currentLevel = Number(e.target.value);
+      });
+
+      el.audioSelect.addEventListener('change', (e) => {
+        if (hlsInstance) hlsInstance.audioTrack = Number(e.target.value);
+      });
+
+      el.btnModalFav.addEventListener('click', () => {
+        if (state.activeChannel) toggleChannelFavorite(state.activeChannel);
+      });
+
+      el.btnModalPrev.addEventListener('click', () => zapChannel(-1));
+      el.btnModalNext.addEventListener('click', () => zapChannel(1));
+      el.btnPlayerReload.addEventListener('click', () => {
+        if (state.activeChannel) openPlayerModal(state.activeChannel);
+      });
+      el.btnStatusReload.addEventListener('click', () => {
+        if (state.activeChannel) openPlayerModal(state.activeChannel);
+      });
+      el.btnPlayerPip.addEventListener('click', togglePictureInPicture);
+      el.btnPlayerSnapshot.addEventListener('click', takeVideoSnapshot);
+      el.btnPlayerFullscreen.addEventListener('click', togglePlayerFullscreen);
+
       el.btnCloseModal.addEventListener('click', closePlayerModal);
       el.playerModal.addEventListener('click', (e) => {
         if (e.target === el.playerModal) closePlayerModal();
       });
+
+      // Keyboard shortcuts
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
+          const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+          if (fsEl) return; // Le navigateur quitte d'abord le plein écran natif
           if (el.playerModal.classList.contains('open')) closePlayerModal();
           if (el.helpModal.classList.contains('open')) el.helpModal.classList.remove('open');
           if (el.pasteModal.classList.contains('open')) el.pasteModal.classList.remove('open');
           if (el.dedupModal.classList.contains('open')) el.dedupModal.classList.remove('open');
+          return;
+        }
+
+        if (!el.playerModal.classList.contains('open')) return;
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          zapChannel(-1);
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          zapChannel(1);
+        } else if (e.key === ' ' || e.key.toLowerCase() === 'k') {
+          if (e.target !== el.videoPlayer) {
+            e.preventDefault();
+            if (el.videoPlayer.paused) el.videoPlayer.play().catch(() => {});
+            else el.videoPlayer.pause();
+          }
+        } else if (e.key.toLowerCase() === 'm') {
+          e.preventDefault();
+          el.videoPlayer.muted = !el.videoPlayer.muted;
+        } else if (e.key.toLowerCase() === 'f') {
+          e.preventDefault();
+          togglePlayerFullscreen();
+        } else if (e.key.toLowerCase() === 'p') {
+          e.preventDefault();
+          togglePictureInPicture();
         }
       });
 
