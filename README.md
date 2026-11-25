@@ -1,28 +1,26 @@
-À quoi sert M3U Studio ?
-M3U Studio permet d'explorer, éditer, filtrer, nettoyer et exporter de grandes playlists TV/IPTV (même de plus de 10 000 chaînes) directement dans votre navigateur. 
-Tout est traité localement sur votre appareil : vos fichiers ne sont envoyés sur aucun serveur.
+M3U Studio lets you browse, edit, filter, clean, and export large TV/IPTV playlists (even 10,000+ channels) right in your browser. 
+Everything is processed locally on your device: your files are never uploaded to any server.
 
-1. Charger une playlist
-Fichier local : glissez-déposez un fichier .m3u ou .m3u8 ou cliquez sur Parcourir mes fichiers.
-URL directe : collez une adresse et cliquez sur Charger l'URL. Si le serveur bloque par sécurité (CORS), téléchargez le lien dans un nouvel onglet puis glissez le fichier à gauche.
-Coller texte M3U : pratique si vous avez copié le contenu brut d'une playlist (ex. via le Bloc-notes).
+1. Load a playlist
+Local file: drag & drop a .m3u or .m3u8 file or click Browse files.
+Direct URL: paste a link and click Load URL. If blocked by CORS, download it in a new tab and drop the file on the left.
+Paste M3U text: handy if you copied raw playlist text (e.g. from Notepad).
 
-2. Éditer : réorganiser & renommer vos chaînes
-Réorganiser (Glisser-déposer) : maintenez une chaîne (via la poignée ⋮⋮ ou la fiche) et déposez-la sur une autre pour changer son emplacement. Votre ordre personnalisé est conservé à l'export .m3u.
-Renommer (Double-clic) : double-cliquez directement sur le nom d'une chaîne pour le modifier (ex. effacer FR| ou 4K), puis appuyez sur Entrée pour valider (ou Échap pour annuler).
-Nettoyer noms (en masse) : le bouton Nettoyer noms permet de retirer d'un coup les préfixes pays (FR| , [FR] …), les tags qualité (4K, FHD, HD…) ou un texte personnalisé sur toute la liste affichée.
+2. Edit: reorder & rename channels
+Reorder (Drag & Drop): hold and drag any channel (via the ⋮⋮ grip or card) onto another to change its position. Your custom order is preserved when exporting to .m3u.
+Rename (Double-click): double-click any channel name to edit it inline (e.g. remove FR| or 4K), then press Enter to save (or Esc to cancel).
+Clean names (bulk): click Clean names to strip country prefixes (FR| , [US] …), quality tags (4K, FHD, HD…), or any custom text across all visible channels.
 
-3. Rechercher, filtrer & tester les liens
-Recherche & filtres : filtrez par nom, catégorie, Favoris uniquement (★), Actifs uniquement ou Doublons uniquement.
-Tester les flux : vérifie les liens par lots (timeout 4 s) en classant chaque chaîne : Actif, Mort ou Bloqué / CORS.
-Nettoyer : retirez les liens Mort ou les doublons, et utilisez Réinitialiser la liste pour revenir à la playlist d'origine.
+3. Search, filter & check links
+Search & filters: filter by name, category, Favorites only (★), Active only, or Duplicates only.
+Test streams: checks links in batches (4s timeout) and classifies them as Active, Dead, or Blocked / CORS.
+Cleanup: remove Dead links or duplicates, and use Reset list to restore the original playlist.
 
-4. Lecteur intégré (Viewer) & Guide TV (EPG)
-▶ Lire : ouvre le lecteur avec zapping (◀ / ▶), favori en direct (★), choix qualité HLS & piste audio, télémétrie (résolution/débit), ↻ Recharger, PiP (fenêtre flottante), 📷 Capture et ⛶ Plein écran.
-Raccourcis clavier : ← / → (chaîne préc./suiv.), Espace ou K (lecture/pause), M (muet), F (plein écran), P (PiP), Échap (fermer).
-Guide TV (EPG) : cliquez sur EPG pour charger un fichier XMLTV (.xml / .xml.gz) ou une URL et afficher le programme En cours / À suivre.
+4. Built-in player (Viewer) & TV Guide (EPG)
+▶ Play: opens the player with zapping (◀ / ▶), live favorite toggle (★), HLS quality & audio selectors, telemetry, ↻ Reload, PiP (floating window), 📷 Snapshot, and ⛶ Fullscreen.
+Keyboard shortcuts: ← / → (prev/next), Space or K (play/pause), M (mute), F (fullscreen), P (PiP), Esc (close).
+TV Guide (EPG): click EPG to load an XMLTV file (.xml / .xml.gz) or URL to display Now / Next programs.
 
-5. Ouvrir dans VLC / MPV (Windows 11) & exporter
-Envoyer vers lecteur (.m3u) : télécharge un mini fichier .m3u dans Téléchargements. Sur Windows 11, associez .m3u à VLC (Clic droit → Ouvrir avec → VLC → Toujours).
-Exporter filtrées / sélection : génère votre nouveau fichier .m3u propre avec vos renommages et votre ordre personnalisé.
-Astuce : appuyez sur Échap pour fermer cette fenêtre.
+5. Open in VLC / MPV (Windows 11) & export
+Send to player (.m3u): downloads a mini .m3u file into Downloads. On Windows 11, associate .m3u with VLC (Right-click → Open with → VLC → Always).
+Export filtered / selected: generates a clean .m3u file keeping your renamed titles and custom order.
