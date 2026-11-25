@@ -94,19 +94,26 @@
     .scan-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--success)); transition: width 0.2s ease; }
     .channels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 12px; }
     @media (max-width: 420px) { .channels-grid { grid-template-columns: 1fr; } }
-    .channel-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px; display: flex; flex-direction: column; gap: 10px; transition: border-color 0.15s, background 0.15s; }
+    .channel-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px; display: flex; flex-direction: column; gap: 10px; transition: border-color 0.15s, background 0.15s, opacity 0.15s, box-shadow 0.15s; }
     .channel-card:hover { border-color: #364766; background: var(--bg-card); }
     .channel-card.selected { border-color: var(--accent); background: rgba(59, 130, 246, 0.08); }
     .channel-card.status-dead { border-color: rgba(239, 68, 68, 0.4); }
-    .channel-head { display: flex; align-items: flex-start; gap: 12px; }
+    .channel-card.dragging { opacity: 0.42; border-style: dashed; }
+    .channel-card.drag-over { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.12); }
+    .channel-head { display: flex; align-items: flex-start; gap: 9px; }
+    .drag-handle { color: var(--text-dim); cursor: grab; padding: 3px 2px; line-height: 1; user-select: none; font-size: 14px; letter-spacing: -1px; flex-shrink: 0; }
+    .drag-handle:hover { color: var(--text-main); }
+    .drag-handle:active { cursor: grabbing; }
     .checkbox-wrap { padding-top: 2px; }
     .checkbox { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
-    .logo-box { width: 48px; height: 48px; border-radius: 9px; background: var(--bg-input); border: 1px solid var(--border); flex-shrink: 0; display: grid; place-items: center; overflow: hidden; }
+    .logo-box { width: 46px; height: 46px; border-radius: 9px; background: var(--bg-input); border: 1px solid var(--border); flex-shrink: 0; display: grid; place-items: center; overflow: hidden; }
     .logo-box-sm { width: 38px; height: 38px; border-radius: 8px; }
     .logo-box img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
     .logo-fallback { font-weight: 700; font-size: 0.85rem; color: var(--text-muted); user-select: none; }
     .channel-info { flex: 1; min-width: 0; }
-    .channel-title { font-weight: 600; font-size: 0.94rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+    .channel-title { font-weight: 600; font-size: 0.94rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; cursor: text; border-radius: 4px; padding: 1px 3px; margin-left: -3px; transition: background 0.15s; }
+    .channel-title:hover { background: rgba(255, 255, 255, 0.06); }
+    .inline-rename-input { width: 100%; background: var(--bg-input); border: 1px solid var(--accent); border-radius: 5px; padding: 2px 6px; font-size: 0.92rem; font-weight: 600; color: var(--text-main); outline: none; margin-bottom: 4px; }
     .channel-tags { display: flex; flex-wrap: wrap; gap: 5px; }
     .tag { font-size: 0.71rem; padding: 2px 7px; border-radius: 5px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-muted); max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .tag-group { color: #93c5fd; border-color: rgba(59, 130, 246, 0.25); background: rgba(59, 130, 246, 0.08); }
@@ -283,6 +290,7 @@
           <button id="btnStopTest" class="btn btn-sm btn-danger" type="button" style="display: none;" data-i18n="stopTestBtn">Arrêter le test</button>
           <button id="btnRemoveDead" class="btn btn-sm btn-danger" type="button" disabled><span data-i18n="removeDeadBtn">Retirer les liens morts</span> (<span id="deadRemoveCount">0</span>)</button>
           <button id="btnOpenDedup" class="btn btn-sm btn-warning" type="button" disabled data-i18n="cleanDuplicatesBtn">Nettoyer doublons</button>
+          <button id="btnOpenCleanNames" class="btn btn-sm" type="button" disabled data-i18n="cleanNamesBtn">Nettoyer noms</button>
           <button id="btnResetList" class="btn btn-sm" type="button" disabled data-i18n="resetListBtn">Réinitialiser la liste</button>
           <button id="btnSelectFiltered" class="btn btn-sm" type="button" disabled data-i18n="selectAllBtn">Tout sélectionner</button>
           <button id="btnDeselectAll" class="btn btn-sm" type="button" disabled data-i18n="deselectAllBtn">Tout désélectionner</button>
@@ -317,6 +325,45 @@
       </div>
     </nav>
   </main>
+
+  <!-- Modal Nettoyer les noms -->
+  <div id="cleanNamesModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="cleanNamesModalTitle">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <div>
+          <div id="cleanNamesModalTitle" class="modal-title" data-i18n="cleanNamesModalTitle">Nettoyer les noms de chaînes</div>
+          <div class="modal-subtitle" data-i18n="cleanNamesModalSubtitle">Supprimez en masse les préfixes pays, tags qualité ou textes superflus</div>
+        </div>
+        <button id="btnCloseCleanNames" class="btn btn-sm" type="button" data-i18n="closeBtn">Fermer ✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="dedup-option">
+          <div>
+            <strong data-i18n="cleanPrefixTitle">Supprimer les préfixes pays / bouquet</strong>
+            <span data-i18n="cleanPrefixDesc">Ex : « FR| TF1 », « FR: Arte », « [FR] M6 » → « TF1 », « Arte », « M6 »</span>
+          </div>
+          <button id="btnCleanPrefixes" class="btn btn-primary btn-sm" type="button" data-i18n="applyBtn">Appliquer</button>
+        </div>
+        <div class="dedup-option">
+          <div>
+            <strong data-i18n="cleanQualityTitle">Supprimer les tags qualité en fin de nom</strong>
+            <span data-i18n="cleanQualityDesc">Ex : « TF1 4K », « M6 FHD », « Arte HD HEVC » → « TF1 », « M6 », « Arte »</span>
+          </div>
+          <button id="btnCleanQualities" class="btn btn-primary btn-sm" type="button" data-i18n="applyBtn">Appliquer</button>
+        </div>
+        <div class="url-loader">
+          <div>
+            <label for="customRemoveInput" data-i18n="cleanCustomLabel">Supprimer un texte / préfixe personnalisé</label>
+            <div class="input-group">
+              <input id="customRemoveInput" type="text" class="input" data-i18n-placeholder="cleanCustomPlaceholder" placeholder="Ex : FR|  ou  VIP - " />
+              <button id="btnCleanCustom" class="btn btn-warning" type="button" data-i18n="cleanCustomBtn">Supprimer</button>
+            </div>
+          </div>
+          <span style="font-size: 0.76rem; color: var(--text-muted);" data-i18n="cleanScopeHint">S'applique aux chaînes actuellement affichées (filtrées ou liste complète). Utilisez « Réinitialiser la liste » pour annuler.</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal EPG / Guide TV -->
   <div id="epgModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="epgModalTitle">
@@ -551,6 +598,7 @@
           stopTestBtn: 'Arrêter le test',
           removeDeadBtn: 'Retirer les liens morts',
           cleanDuplicatesBtn: 'Nettoyer doublons',
+          cleanNamesBtn: 'Nettoyer noms',
           resetListBtn: 'Réinitialiser la liste',
           selectAllBtn: 'Tout sélectionner',
           deselectAllBtn: 'Tout désélectionner',
@@ -577,6 +625,23 @@
           emptyNoResultsTitle: 'Aucun résultat',
           emptyNoResultsDesc: 'Aucune chaîne ne correspond à vos critères de recherche ou de filtre.',
           selectChannelAria: 'Sélectionner {name}',
+          dragHandleTitle: 'Maintenir et glisser pour réorganiser',
+          renameHintTitle: 'Double-cliquez pour renommer la chaîne',
+          toastRenamed: 'Chaîne renommée : « {name} »',
+          toastReordered: 'Ordre mis à jour.',
+          cleanNamesModalTitle: 'Nettoyer les noms de chaînes',
+          cleanNamesModalSubtitle: 'Supprimez en masse les préfixes pays, tags qualité ou textes superflus',
+          cleanPrefixTitle: 'Supprimer les préfixes pays / bouquet',
+          cleanPrefixDesc: 'Ex : « FR| TF1 », « FR: Arte », « [FR] M6 » → « TF1 », « Arte », « M6 »',
+          cleanQualityTitle: 'Supprimer les tags qualité en fin de nom',
+          cleanQualityDesc: 'Ex : « TF1 4K », « M6 FHD », « Arte HD HEVC » → « TF1 », « M6 », « Arte »',
+          cleanCustomLabel: 'Supprimer un texte / préfixe personnalisé',
+          cleanCustomPlaceholder: 'Ex : FR|  ou  VIP - ',
+          cleanCustomBtn: 'Supprimer',
+          applyBtn: 'Appliquer',
+          cleanScopeHint: 'S\'applique aux chaînes actuellement affichées (filtrées ou liste complète). Utilisez « Réinitialiser la liste » pour annuler.',
+          toastNamesCleaned: '{count} nom(s) de chaîne(s) nettoyé(s).',
+          toastNamesUnchanged: 'Aucun nom correspondant trouvé à nettoyer.',
           addFavTitle: 'Ajouter aux favoris',
           removeFavTitle: 'Retirer des favoris',
           dupUrlName: 'Doublon URL+Nom',
@@ -629,7 +694,7 @@
           helpBodyHtml: `
             <div class="help-section">
               <h3>À quoi sert M3U Studio ?</h3>
-              <p><strong>M3U Studio</strong> permet d'explorer, filtrer, nettoyer et exporter de grandes playlists TV/IPTV (même de plus de 10 000 chaînes) directement dans votre navigateur. Tout est traité <strong>localement sur votre appareil</strong> : vos fichiers ne sont envoyés sur aucun serveur.</p>
+              <p><strong>M3U Studio</strong> permet d'explorer, éditer, filtrer, nettoyer et exporter de grandes playlists TV/IPTV (même de plus de 10 000 chaînes) directement dans votre navigateur. Tout est traité <strong>localement sur votre appareil</strong> : vos fichiers ne sont envoyés sur aucun serveur.</p>
             </div>
             <div class="help-section">
               <h3>1. Charger une playlist</h3>
@@ -640,47 +705,34 @@
               </ul>
             </div>
             <div class="help-section">
-              <h3>2. Rechercher, filtrer &amp; mettre en favoris</h3>
+              <h3>2. Éditer : réorganiser &amp; renommer vos chaînes</h3>
               <ul>
-                <li><strong>Recherche instantanée :</strong> filtre par nom de chaîne, catégorie, langue, pays ou <code>tvg-id</code>.</li>
-                <li><strong>Favoris (★) :</strong> cliquez sur l'étoile d'une chaîne pour la sauvegarder dans votre navigateur et utilisez <strong>Favoris uniquement</strong> pour la retrouver.</li>
-                <li><strong>Actifs uniquement / Doublons uniquement :</strong> combinez ces filtres avec la recherche et les catégories.</li>
+                <li><strong>Réorganiser (Glisser-déposer) :</strong> maintenez une chaîne (via la poignée <code>⋮⋮</code> ou la fiche) et déposez-la sur une autre pour changer son emplacement. Votre ordre personnalisé est conservé à l'export <code>.m3u</code>.</li>
+                <li><strong>Renommer (Double-clic) :</strong> double-cliquez directement sur le nom d'une chaîne pour le modifier (ex. effacer <code>FR| </code> ou <code>4K</code>), puis appuyez sur <strong>Entrée</strong> pour valider (ou <strong>Échap</strong> pour annuler).</li>
+                <li><strong>Nettoyer noms (en masse) :</strong> le bouton <strong>Nettoyer noms</strong> permet de retirer d'un coup les préfixes pays (<code>FR| </code>, <code>[FR] </code>…), les tags qualité (<code>4K</code>, <code>FHD</code>, <code>HD</code>…) ou un texte personnalisé sur toute la liste affichée.</li>
               </ul>
             </div>
             <div class="help-section">
-              <h3>3. Tester les liens &amp; nettoyer la liste</h3>
+              <h3>3. Rechercher, filtrer &amp; tester les liens</h3>
               <ul>
-                <li><strong>Tester les flux :</strong> vérifie les liens par petits lots (timeout 4 s) et classe chaque chaîne : <strong>Actif</strong> (répond OK), <strong>Mort</strong> (erreur 404/410/5xx ou timeout) ou <strong>Bloqué / CORS</strong> (non testable par le navigateur, mais souvent lisible dans VLC/MPV).</li>
-                <li><strong>Retirer les liens morts :</strong> supprime uniquement les liens <strong>Mort</strong> tout en gardant ceux en <strong>Bloqué / CORS</strong>.</li>
-                <li><strong>Nettoyer doublons :</strong> retire les chaînes ayant la même URL et/ou le même nom (en gardant les favoris en priorité).</li>
-                <li><strong>Réinitialiser la liste :</strong> restaure la playlist complète d'origine avant vos suppressions.</li>
+                <li><strong>Recherche &amp; filtres :</strong> filtrez par nom, catégorie, <strong>Favoris uniquement</strong> (★), <strong>Actifs uniquement</strong> ou <strong>Doublons uniquement</strong>.</li>
+                <li><strong>Tester les flux :</strong> vérifie les liens par lots (timeout 4 s) en classant chaque chaîne : <strong>Actif</strong>, <strong>Mort</strong> ou <strong>Bloqué / CORS</strong>.</li>
+                <li><strong>Nettoyer :</strong> retirez les liens <strong>Mort</strong> ou les doublons, et utilisez <strong>Réinitialiser la liste</strong> pour revenir à la playlist d'origine.</li>
               </ul>
             </div>
             <div class="help-section">
-              <h3>4. Utiliser le lecteur intégré (Viewer)</h3>
+              <h3>4. Lecteur intégré (Viewer) &amp; Guide TV (EPG)</h3>
               <ul>
-                <li><strong>Zapping direct (<code>◀</code> / <code>▶</code>) :</strong> passez à la chaîne précédente ou suivante de votre liste filtrée sans fermer le lecteur.</li>
-                <li><strong>Favori en direct (<code>★</code>) :</strong> ajoutez ou retirez la chaîne en cours de lecture de vos favoris directement depuis l'en-tête du lecteur.</li>
-                <li><strong>Qualité vidéo &amp; Audio :</strong> sélectionnez la résolution (<em>Auto</em>, <em>1080p</em>, <em>720p</em>…) et la piste audio lorsque le flux HLS en propose plusieurs.</li>
-                <li><strong>Télémétrie en temps réel :</strong> affiche la résolution vidéo active (ex. <code>1920×1080</code>) et le débit (<code>Mbps</code> / <code>kbps</code>).</li>
-                <li><strong>Outils rapides :</strong> <strong>↻ Recharger</strong> pour relancer un flux coupé, <strong>PiP</strong> pour détacher la vidéo en mini-fenêtre flottante, <strong>📷 Capture</strong> pour enregistrer une image <code>.png</code> (si autorisé par CORS), et <strong>⛶ Plein écran</strong>.</li>
+                <li><strong>▶ Lire :</strong> ouvre le lecteur avec zapping (<code>◀</code> / <code>▶</code>), favori en direct (<code>★</code>), choix qualité HLS &amp; piste audio, télémétrie (résolution/débit), <strong>↻ Recharger</strong>, <strong>PiP</strong> (fenêtre flottante), <strong>📷 Capture</strong> et <strong>⛶ Plein écran</strong>.</li>
                 <li><strong>Raccourcis clavier :</strong> <code>←</code> / <code>→</code> (chaîne préc./suiv.), <code>Espace</code> ou <code>K</code> (lecture/pause), <code>M</code> (muet), <code>F</code> (plein écran), <code>P</code> (PiP), <code>Échap</code> (fermer).</li>
+                <li><strong>Guide TV (EPG) :</strong> cliquez sur <strong>EPG</strong> pour charger un fichier XMLTV (<code>.xml</code> / <code>.xml.gz</code>) ou une URL et afficher le programme <strong>En cours / À suivre</strong>.</li>
               </ul>
             </div>
             <div class="help-section">
-              <h3>5. Guide TV (EPG / XMLTV) : programme en cours</h3>
+              <h3>5. Ouvrir dans VLC / MPV (Windows 11) &amp; exporter</h3>
               <ul>
-                <li><strong>Importer un guide TV :</strong> cliquez sur le bouton <strong>EPG</strong> en haut pour charger un fichier XMLTV local (<code>.xml</code> ou <code>.xml.gz</code>) ou une URL EPG (pré-remplie si <code>url-tvg</code> / <code>x-tvg-url</code> est présent dans votre <code>.m3u</code>).</li>
-                <li><strong>Affichage En cours / À suivre :</strong> dès qu'une chaîne correspond (via <code>tvg-id</code> ou son nom), son programme actuel, sa barre de progression et le programme suivant s'affichent dans le viewer ainsi que sur sa fiche.</li>
-              </ul>
-            </div>
-            <div class="help-section">
-              <h3>6. Ouvrir dans VLC / MPV (Windows 11) &amp; exporter</h3>
-              <ul>
-                <li><strong>Envoyer vers lecteur (.m3u) :</strong> par sécurité, un navigateur web ne peut pas lancer directement un logiciel comme VLC. Ce bouton télécharge un mini fichier <code>.m3u</code> dans votre dossier <em>Téléchargements</em> (ou en haut à droite du navigateur).</li>
-                <li><strong>Si le double-clic sur le <code>.m3u</code> n'ouvre pas VLC :</strong> sur Windows 11, faites <strong>Clic droit sur le fichier <code>.m3u</code> → Ouvrir avec → Choisir une autre application → VLC media player → Toujours</strong> (ou configurez <code>.m3u</code> dans <em>Paramètres → Applications → Applications par défaut</em>).</li>
-                <li><strong>Ouverture rapide (Chrome / Edge) :</strong> une fois VLC associé, faites un clic droit sur le fichier dans la barre de téléchargement du navigateur et cochez <em>« Toujours ouvrir les fichiers de ce type »</em>.</li>
-                <li><strong>Exporter filtrées / sélection :</strong> génère un nouveau fichier <code>.m3u</code> valide contenant uniquement les chaînes choisies.</li>
+                <li><strong>Envoyer vers lecteur (.m3u) :</strong> télécharge un mini fichier <code>.m3u</code> dans <em>Téléchargements</em>. Sur Windows 11, associez <code>.m3u</code> à VLC (<em>Clic droit → Ouvrir avec → VLC → Toujours</em>).</li>
+                <li><strong>Exporter filtrées / sélection :</strong> génère votre nouveau fichier <code>.m3u</code> propre avec vos renommages et votre ordre personnalisé.</li>
               </ul>
             </div>`,
           pasteModalTitle: 'Coller une playlist M3U / M3U8',
@@ -811,6 +863,7 @@
           stopTestBtn: 'Stop test',
           removeDeadBtn: 'Remove dead links',
           cleanDuplicatesBtn: 'Clean duplicates',
+          cleanNamesBtn: 'Clean names',
           resetListBtn: 'Reset list',
           selectAllBtn: 'Select all',
           deselectAllBtn: 'Deselect all',
@@ -837,6 +890,23 @@
           emptyNoResultsTitle: 'No results',
           emptyNoResultsDesc: 'No channels match your search or filter criteria.',
           selectChannelAria: 'Select {name}',
+          dragHandleTitle: 'Hold and drag to reorder',
+          renameHintTitle: 'Double-click to rename channel',
+          toastRenamed: 'Channel renamed: "{name}"',
+          toastReordered: 'Order updated.',
+          cleanNamesModalTitle: 'Clean channel names',
+          cleanNamesModalSubtitle: 'Bulk-remove country prefixes, quality tags, or custom text',
+          cleanPrefixTitle: 'Remove country / provider prefixes',
+          cleanPrefixDesc: 'E.g. "FR| TF1", "UK: BBC", "[US] CNN" → "TF1", "BBC", "CNN"',
+          cleanQualityTitle: 'Remove trailing quality tags',
+          cleanQualityDesc: 'E.g. "TF1 4K", "BBC FHD", "CNN HD HEVC" → "TF1", "BBC", "CNN"',
+          cleanCustomLabel: 'Remove custom text / prefix',
+          cleanCustomPlaceholder: 'E.g. FR|  or  VIP - ',
+          cleanCustomBtn: 'Remove',
+          applyBtn: 'Apply',
+          cleanScopeHint: 'Applies to currently displayed channels (filtered or full list). Use "Reset list" to undo.',
+          toastNamesCleaned: '{count} channel name(s) cleaned.',
+          toastNamesUnchanged: 'No matching channel names found to clean.',
           addFavTitle: 'Add to favorites',
           removeFavTitle: 'Remove from favorites',
           dupUrlName: 'Duplicate URL+Name',
@@ -889,58 +959,45 @@
           helpBodyHtml: `
             <div class="help-section">
               <h3>What is M3U Studio for?</h3>
-              <p><strong>M3U Studio</strong> lets you browse, filter, clean, and export large TV/IPTV playlists (even 10,000+ channels) right in your browser. Everything is processed <strong>locally on your device</strong>: your files are never uploaded to any server.</p>
+              <p><strong>M3U Studio</strong> lets you browse, edit, filter, clean, and export large TV/IPTV playlists (even 10,000+ channels) right in your browser. Everything is processed <strong>locally on your device</strong>: your files are never uploaded to any server.</p>
             </div>
             <div class="help-section">
               <h3>1. Load a playlist</h3>
               <ul>
                 <li><strong>Local file:</strong> drag &amp; drop a <code>.m3u</code> or <code>.m3u8</code> file or click <strong>Browse files</strong>.</li>
-                <li><strong>Direct URL:</strong> paste a link and click <strong>Load URL</strong>. If the remote server blocks it (CORS), download the link in a new tab and drop the file on the left.</li>
-                <li><strong>Paste M3U text:</strong> handy if you copied raw playlist text (e.g., from Notepad).</li>
+                <li><strong>Direct URL:</strong> paste a link and click <strong>Load URL</strong>. If blocked by CORS, download it in a new tab and drop the file on the left.</li>
+                <li><strong>Paste M3U text:</strong> handy if you copied raw playlist text (e.g. from Notepad).</li>
               </ul>
             </div>
             <div class="help-section">
-              <h3>2. Search, filter &amp; favorite</h3>
+              <h3>2. Edit: reorder &amp; rename channels</h3>
               <ul>
-                <li><strong>Instant search:</strong> filter by channel name, category, language, country, or <code>tvg-id</code>.</li>
-                <li><strong>Favorites (★):</strong> click a channel's star to save it in your browser and use <strong>Favorites only</strong> to find it quickly.</li>
-                <li><strong>Active only / Duplicates only:</strong> combine these toggles with search and categories.</li>
+                <li><strong>Reorder (Drag &amp; Drop):</strong> hold and drag any channel (via the <code>⋮⋮</code> grip or card) onto another to change its position. Your custom order is preserved when exporting to <code>.m3u</code>.</li>
+                <li><strong>Rename (Double-click):</strong> double-click any channel name to edit it inline (e.g. remove <code>FR| </code> or <code>4K</code>), then press <strong>Enter</strong> to save (or <strong>Esc</strong> to cancel).</li>
+                <li><strong>Clean names (bulk):</strong> click <strong>Clean names</strong> to strip country prefixes (<code>FR| </code>, <code>[US] </code>…), quality tags (<code>4K</code>, <code>FHD</code>, <code>HD</code>…), or any custom text across all visible channels.</li>
               </ul>
             </div>
             <div class="help-section">
-              <h3>3. Check links &amp; clean the list</h3>
+              <h3>3. Search, filter &amp; check links</h3>
               <ul>
-                <li><strong>Test streams:</strong> checks links in small batches (4s timeout) and classifies each channel as <strong>Active</strong> (OK response), <strong>Dead</strong> (404/410/5xx error or timeout), or <strong>Blocked / CORS</strong> (cannot be tested by the browser, but often playable in VLC/MPV).</li>
-                <li><strong>Remove dead links:</strong> removes only <strong>Dead</strong> links while keeping <strong>Blocked / CORS</strong> ones.</li>
-                <li><strong>Clean duplicates:</strong> removes entries sharing the same URL and/or name (prioritizing favorites).</li>
-                <li><strong>Reset list:</strong> restores the original full playlist before any removals.</li>
+                <li><strong>Search &amp; filters:</strong> filter by name, category, <strong>Favorites only</strong> (★), <strong>Active only</strong>, or <strong>Duplicates only</strong>.</li>
+                <li><strong>Test streams:</strong> checks links in batches (4s timeout) and classifies them as <strong>Active</strong>, <strong>Dead</strong>, or <strong>Blocked / CORS</strong>.</li>
+                <li><strong>Cleanup:</strong> remove <strong>Dead</strong> links or duplicates, and use <strong>Reset list</strong> to restore the original playlist.</li>
               </ul>
             </div>
             <div class="help-section">
-              <h3>4. Using the built-in player (Viewer)</h3>
+              <h3>4. Built-in player (Viewer) &amp; TV Guide (EPG)</h3>
               <ul>
-                <li><strong>Quick zapping (<code>◀</code> / <code>▶</code>):</strong> switch to the previous or next channel in your filtered list without closing the player.</li>
-                <li><strong>Live favorite toggle (<code>★</code>):</strong> add or remove the currently playing channel from favorites right from the player header.</li>
-                <li><strong>Video quality &amp; Audio:</strong> select stream resolution (<em>Auto</em>, <em>1080p</em>, <em>720p</em>…) and audio track when multiple options are available in the HLS manifest.</li>
-                <li><strong>Live telemetry:</strong> displays the active video resolution (e.g. <code>1920×1080</code>) and bitrate (<code>Mbps</code> / <code>kbps</code>).</li>
-                <li><strong>Quick tools:</strong> <strong>↻ Reload</strong> to restart a stalled stream, <strong>PiP</strong> for a floating Picture-in-Picture mini window, <strong>📷 Snapshot</strong> to save a <code>.png</code> frame (when allowed by CORS), and <strong>⛶ Fullscreen</strong>.</li>
-                <li><strong>Keyboard shortcuts:</strong> <code>←</code> / <code>→</code> (prev/next channel), <code>Space</code> or <code>K</code> (play/pause), <code>M</code> (mute), <code>F</code> (fullscreen), <code>P</code> (PiP), <code>Esc</code> (close).</li>
+                <li><strong>▶ Play:</strong> opens the player with zapping (<code>◀</code> / <code>▶</code>), live favorite toggle (<code>★</code>), HLS quality &amp; audio selectors, telemetry, <strong>↻ Reload</strong>, <strong>PiP</strong> (floating window), <strong>📷 Snapshot</strong>, and <strong>⛶ Fullscreen</strong>.</li>
+                <li><strong>Keyboard shortcuts:</strong> <code>←</code> / <code>→</code> (prev/next), <code>Space</code> or <code>K</code> (play/pause), <code>M</code> (mute), <code>F</code> (fullscreen), <code>P</code> (PiP), <code>Esc</code> (close).</li>
+                <li><strong>TV Guide (EPG):</strong> click <strong>EPG</strong> to load an XMLTV file (<code>.xml</code> / <code>.xml.gz</code>) or URL to display <strong>Now / Next</strong> programs.</li>
               </ul>
             </div>
             <div class="help-section">
-              <h3>5. TV Guide (EPG / XMLTV): current &amp; next program</h3>
+              <h3>5. Open in VLC / MPV (Windows 11) &amp; export</h3>
               <ul>
-                <li><strong>Import a TV guide:</strong> click the <strong>EPG</strong> button in the header to load a local XMLTV file (<code>.xml</code> or <code>.xml.gz</code>) or an EPG URL (auto-filled if <code>url-tvg</code> / <code>x-tvg-url</code> is in your <code>.m3u</code>).</li>
-                <li><strong>Now / Next display:</strong> when a channel matches (by <code>tvg-id</code> or channel name), the current program, progress bar, and next program appear in the viewer and on the channel card.</li>
-              </ul>
-            </div>
-            <div class="help-section">
-              <h3>6. Open in VLC / MPV (Windows 11) &amp; export</h3>
-              <ul>
-                <li><strong>Send to player (.m3u):</strong> for security reasons, a web browser cannot launch external apps like VLC directly. This button downloads a small <code>.m3u</code> file into your <em>Downloads</em> folder (or top-right browser downloads bar).</li>
-                <li><strong>If double-clicking the <code>.m3u</code> file doesn't open VLC:</strong> on Windows 11, <strong>Right-click the <code>.m3u</code> file → Open with → Choose another app → VLC media player → Always</strong> (or set <code>.m3u</code> in <em>Settings → Apps → Default apps</em>).</li>
-                <li><strong>Quick open (Chrome / Edge):</strong> once VLC is associated, right-click the downloaded file in the browser's downloads bar and select <em>"Always open files of this type"</em>.</li>
-                <li><strong>Export filtered / selected:</strong> generates a clean, valid <code>.m3u</code> file containing only your chosen channels.</li>
+                <li><strong>Send to player (.m3u):</strong> downloads a mini <code>.m3u</code> file into <em>Downloads</em>. On Windows 11, associate <code>.m3u</code> with VLC (<em>Right-click → Open with → VLC → Always</em>).</li>
+                <li><strong>Export filtered / selected:</strong> generates a clean <code>.m3u</code> file keeping your renamed titles and custom order.</li>
               </ul>
             </div>`,
           pasteModalTitle: 'Paste an M3U / M3U8 playlist',
@@ -1061,6 +1118,7 @@
         sourceKey: '',
         sourceCustom: '',
         activeChannel: null,
+        dragSourceUid: null,
         dupStats: { anyDupCount: 0, urlRemovable: 0, nameRemovable: 0, bothRemovable: 0 },
         scan: { running: false, stopRequested: false, total: 0, done: 0, activeControllers: new Set() },
         epg: { loaded: false, source: '', detectedUrl: '', channelCount: 0, progCount: 0, programmesById: new Map(), nameToIds: new Map() }
@@ -1107,6 +1165,7 @@
         btnRemoveDead: document.getElementById('btnRemoveDead'),
         deadRemoveCount: document.getElementById('deadRemoveCount'),
         btnOpenDedup: document.getElementById('btnOpenDedup'),
+        btnOpenCleanNames: document.getElementById('btnOpenCleanNames'),
         btnResetList: document.getElementById('btnResetList'),
         btnSelectFiltered: document.getElementById('btnSelectFiltered'),
         btnDeselectAll: document.getElementById('btnDeselectAll'),
@@ -1128,6 +1187,12 @@
         btnPrevPage: document.getElementById('btnPrevPage'),
         btnNextPage: document.getElementById('btnNextPage'),
         btnLastPage: document.getElementById('btnLastPage'),
+        cleanNamesModal: document.getElementById('cleanNamesModal'),
+        btnCloseCleanNames: document.getElementById('btnCloseCleanNames'),
+        btnCleanPrefixes: document.getElementById('btnCleanPrefixes'),
+        btnCleanQualities: document.getElementById('btnCleanQualities'),
+        customRemoveInput: document.getElementById('customRemoveInput'),
+        btnCleanCustom: document.getElementById('btnCleanCustom'),
         epgModal: document.getElementById('epgModal'),
         epgFileInput: document.getElementById('epgFileInput'),
         epgDropzone: document.getElementById('epgDropzone'),
@@ -1252,25 +1317,26 @@
         el.alertBody.appendChild(span);
         if (actionUrl) {
           const link = document.createElement('a');
-          link.href = actionUrl;
-          link.target = '_blank';
-          link.rel = 'noopener noreferrer';
-          link.className = 'btn btn-sm';
-          link.textContent = t('openUrlTabBtn');
+          link.href = actionUrl; link.target = '_blank'; link.rel = 'noopener noreferrer';
+          link.className = 'btn btn-sm'; link.textContent = t('openUrlTabBtn');
           el.alertBody.appendChild(link);
         }
       }
       function hideAlert() { el.alertBox.className = 'alert'; el.alertBody.innerHTML = ''; }
       function showToast(message, type = 'success') {
         const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.textContent = message;
+        toast.className = `toast ${type}`; toast.textContent = message;
         el.toastContainer.appendChild(toast);
         setTimeout(() => toast.remove(), 2600);
       }
 
+      function rebuildSearchIndex(ch) {
+        ch.normName = normalizeName(ch.name);
+        ch.searchIndex = `${ch.name} ${ch.group} ${ch.tvgId} ${ch.language} ${ch.country}`.toLowerCase();
+      }
+
       // ============================
-      // M3U Parser (with EPG url-tvg detection)
+      // M3U Parser
       // ============================
       function parseExtInfLine(line) {
         const content = line.slice(8);
@@ -1307,8 +1373,7 @@
         if (!rawText || typeof rawText !== 'string') throw new Error(t('errEmptyFile'));
         const text = rawText.replace(/^\uFEFF/, '');
         const lines = text.split(/\r?\n|\r/);
-        let hasExtM3UHeader = false;
-        let detectedEpgUrl = '';
+        let hasExtM3UHeader = false, detectedEpgUrl = '';
 
         for (let i = 0; i < Math.min(lines.length, 30); i++) {
           const trimmed = lines[i].trim();
@@ -1339,11 +1404,11 @@
           if (/^(https?|rtmp|rtsp|udp|rtp|mms|srt):\/\//i.test(line) || pendingMeta) {
             const meta = pendingMeta || { duration: '-1', name: extractNameFromUrl(line), group: '', logo: '', tvgId: '', language: '', country: '', tvgName: '' };
             const group = (meta.group || pendingExtGrp || 'Non classé').trim();
-            channels.push({
+            const ch = {
               uid: channels.length,
               duration: meta.duration,
               name: meta.name,
-              normName: normalizeName(meta.name),
+              normName: '',
               group,
               logo: meta.logo,
               tvgId: meta.tvgId,
@@ -1357,10 +1422,11 @@
               linkStatus: null,
               linkDetailKey: '',
               linkDetailRaw: '',
-              searchIndex: `${meta.name} ${group} ${meta.tvgId} ${meta.language} ${meta.country}`.toLowerCase()
-            });
-            pendingMeta = null;
-            pendingExtGrp = '';
+              searchIndex: ''
+            };
+            rebuildSearchIndex(ch);
+            channels.push(ch);
+            pendingMeta = null; pendingExtGrp = '';
           }
         }
         if (channels.length === 0) throw new Error(hasExtM3UHeader ? t('errNoExtInf') : t('errInvalidM3U'));
@@ -1377,6 +1443,80 @@
       }
 
       // ============================
+      // Edit: Rename & Clean Names & Reorder
+      // ============================
+      function renameChannel(channel, newRawName) {
+        const trimmed = String(newRawName || '').trim();
+        if (!trimmed || trimmed === channel.name) return false;
+        channel.name = trimmed;
+        rebuildSearchIndex(channel);
+        analyzeDuplicates();
+        updateStats();
+        if (state.activeChannel && state.activeChannel.uid === channel.uid) {
+          updatePlayerHeader(channel);
+          updatePlayerEpgBar(channel);
+        }
+        showToast(t('toastRenamed', { name: trimmed }));
+        return true;
+      }
+
+      function bulkCleanNames(mode, customText = '') {
+        const targets = state.filtered.length > 0 ? state.filtered : state.channels;
+        if (targets.length === 0) return;
+
+        let changed = 0;
+        for (const ch of targets) {
+          let updated = ch.name;
+          if (mode === 'prefixes') {
+            updated = updated
+              .replace(/^(?:\[[^\]]{1,10}\]|\([^)]{1,10}\)|\|?[A-Z]{2,5}\|?)\s*[:|\-•>\/]\s*/i, '')
+              .replace(/^(?:\[[^\]]{1,10}\]|\([^)]{1,10}\)|\|[A-Z0-9]{1,10}\|)\s+/i, '');
+          } else if (mode === 'qualities') {
+            updated = updated.replace(/(?:\s*[\[\(]?(?:4K|UHD|FHD|HD|SD|HEVC|H\.?265|H\.?264|1080p|720p|50FPS|60FPS|RAW)[\]\)]?)+$/gi, '');
+          } else if (mode === 'custom' && customText) {
+            updated = updated.split(customText).join('');
+          }
+          updated = updated.replace(/\s+/g, ' ').trim();
+          if (updated && updated !== ch.name) {
+            ch.name = updated;
+            rebuildSearchIndex(ch);
+            changed++;
+          }
+        }
+
+        el.cleanNamesModal.classList.remove('open');
+        if (changed > 0) {
+          analyzeDuplicates();
+          applyFilters();
+          showToast(t('toastNamesCleaned', { count: fmtNum(changed) }));
+        } else {
+          showToast(t('toastNamesUnchanged'));
+        }
+      }
+
+      function reorderChannel(fromUid, toUid) {
+        if (fromUid === toUid || fromUid == null || toUid == null) return;
+        const fromIdx = state.channels.findIndex((c) => c.uid === fromUid);
+        const toIdx = state.channels.findIndex((c) => c.uid === toUid);
+        if (fromIdx === -1 || toIdx === -1) return;
+
+        const selectedSet = new Set();
+        for (const uid of state.selected) if (state.channels[uid]) selectedSet.add(state.channels[uid]);
+
+        const [moved] = state.channels.splice(fromIdx, 1);
+        state.channels.splice(toIdx, 0, moved);
+
+        state.selected.clear();
+        state.channels.forEach((ch, idx) => {
+          ch.uid = idx;
+          if (selectedSet.has(ch)) state.selected.add(idx);
+        });
+
+        applyFilters();
+        showToast(t('toastReordered'));
+      }
+
+      // ============================
       // EPG (XMLTV) Parser & Matcher
       // ============================
       function parseXmltvDate(str) {
@@ -1384,9 +1524,7 @@
         if (!m) return NaN;
         const [, y, mo, d, h, mi, s = '00', tz] = m;
         if (tz === 'Z') return Date.UTC(+y, +mo - 1, +d, +h, +mi, +s);
-        if (tz && /^[+-]\d{4}$/.test(tz)) {
-          return Date.parse(`${y}-${mo}-${d}T${h}:${mi}:${s}${tz.slice(0, 3)}:${tz.slice(3)}`);
-        }
+        if (tz && /^[+-]\d{4}$/.test(tz)) return Date.parse(`${y}-${mo}-${d}T${h}:${mi}:${s}${tz.slice(0, 3)}:${tz.slice(3)}`);
         return new Date(+y, +mo - 1, +d, +h, +mi, +s).getTime();
       }
 
@@ -1413,7 +1551,6 @@
         const programmesById = new Map();
         const progNodes = doc.getElementsByTagName('programme');
         let progCount = 0;
-
         for (let i = 0; i < progNodes.length; i++) {
           const p = progNodes[i];
           const chId = (p.getAttribute('channel') || '').trim().toLowerCase();
@@ -1421,25 +1558,17 @@
           const startMs = parseXmltvDate(p.getAttribute('start'));
           const stopMs = parseXmltvDate(p.getAttribute('stop'));
           if (!Number.isFinite(startMs) || !Number.isFinite(stopMs)) continue;
-
           const titleEl = p.getElementsByTagName('title')[0];
           const title = titleEl ? titleEl.textContent.trim() : '';
           if (!title) continue;
-
           const descEl = p.getElementsByTagName('desc')[0];
           const desc = descEl ? descEl.textContent.trim() : '';
-
           if (!programmesById.has(chId)) programmesById.set(chId, []);
           programmesById.get(chId).push({ startMs, stopMs, title, desc });
           progCount++;
         }
-
         if (progCount === 0) throw new Error(t('epgErrParse'));
-
-        for (const list of programmesById.values()) {
-          list.sort((a, b) => a.startMs - b.startMs);
-        }
-
+        for (const list of programmesById.values()) list.sort((a, b) => a.startMs - b.startMs);
         return { programmesById, nameToIds, channelCount: programmesById.size, progCount };
       }
 
@@ -1456,34 +1585,22 @@
 
         let list = null;
         for (const id of candidates) {
-          if (state.epg.programmesById.has(id)) {
-            list = state.epg.programmesById.get(id);
-            break;
-          }
+          if (state.epg.programmesById.has(id)) { list = state.epg.programmesById.get(id); break; }
         }
         if (!list || list.length === 0) return { current: null, next: null };
 
         const now = Date.now();
-        // Binary search / fast scan
         let current = null, next = null;
         for (let i = 0; i < list.length; i++) {
           const item = list[i];
-          if (item.startMs <= now && item.stopMs > now) {
-            current = item;
-            next = list[i + 1] || null;
-            break;
-          }
-          if (item.startMs > now) {
-            next = item;
-            break;
-          }
+          if (item.startMs <= now && item.stopMs > now) { current = item; next = list[i + 1] || null; break; }
+          if (item.startMs > now) { next = item; break; }
         }
         return { current, next };
       }
 
       function formatTimeRange(startMs, stopMs) {
-        const loc = t('locale');
-        const opts = { hour: '2-digit', minute: '2-digit' };
+        const loc = t('locale'), opts = { hour: '2-digit', minute: '2-digit' };
         return `${new Date(startMs).toLocaleTimeString(loc, opts)} – ${new Date(stopMs).toLocaleTimeString(loc, opts)}`;
       }
 
@@ -1491,11 +1608,7 @@
         if (state.epg.loaded) {
           el.btnOpenEpg.classList.add('btn-success');
           el.epgBtnLabel.textContent = t('epgBtnLoaded', { count: fmtNum(state.epg.channelCount) });
-          el.epgStatusLine.textContent = t('epgLoadedStatus', {
-            progs: fmtNum(state.epg.progCount),
-            channels: fmtNum(state.epg.channelCount),
-            source: state.epg.source
-          });
+          el.epgStatusLine.textContent = t('epgLoadedStatus', { progs: fmtNum(state.epg.progCount), channels: fmtNum(state.epg.channelCount), source: state.epg.source });
           el.btnClearEpg.disabled = false;
         } else {
           el.btnOpenEpg.classList.remove('btn-success');
@@ -1506,15 +1619,10 @@
       }
 
       function applyParsedEpg(parsed, source) {
-        state.epg.loaded = true;
-        state.epg.source = source;
-        state.epg.channelCount = parsed.channelCount;
-        state.epg.progCount = parsed.progCount;
-        state.epg.programmesById = parsed.programmesById;
-        state.epg.nameToIds = parsed.nameToIds;
-
-        updateEpgUiStatus();
-        renderChannelPage();
+        state.epg.loaded = true; state.epg.source = source;
+        state.epg.channelCount = parsed.channelCount; state.epg.progCount = parsed.progCount;
+        state.epg.programmesById = parsed.programmesById; state.epg.nameToIds = parsed.nameToIds;
+        updateEpgUiStatus(); renderChannelPage();
         if (state.activeChannel) updatePlayerEpgBar(state.activeChannel);
         showToast(t('epgToastLoaded', { progs: fmtNum(parsed.progCount), channels: fmtNum(parsed.channelCount) }));
       }
@@ -1524,8 +1632,7 @@
         const isGzip = filename.toLowerCase().endsWith('.gz') || (bytes.length >= 2 && bytes[0] === 0x1f && bytes[1] === 0x8b);
         if (isGzip) {
           if (typeof DecompressionStream === 'undefined') throw new Error(t('epgErrGzip'));
-          const ds = new DecompressionStream('gzip');
-          const stream = new Blob([arrayBuffer]).stream().pipeThrough(ds);
+          const stream = new Blob([arrayBuffer]).stream().pipeThrough(new DecompressionStream('gzip'));
           return await new Response(stream).text();
         }
         return new TextDecoder('utf-8').decode(bytes);
@@ -1534,78 +1641,52 @@
       async function handleEpgFile(file) {
         if (!file) return;
         const name = file.name || 'epg.xml';
-        if (!/\.(xml|gz|xmltv)$/i.test(name)) {
-          el.epgStatusLine.textContent = t('epgErrUnsupported');
-          return;
-        }
+        if (!/\.(xml|gz|xmltv)$/i.test(name)) { el.epgStatusLine.textContent = t('epgErrUnsupported'); return; }
         el.epgStatusLine.textContent = t('epgLoading');
         try {
-          const buf = await file.arrayBuffer();
-          const xmlText = await readEpgBuffer(buf, name);
-          const parsed = parseXmltv(xmlText);
-          applyParsedEpg(parsed, name);
-        } catch (err) {
-          el.epgStatusLine.textContent = err.message || t('epgErrParse');
-        }
+          const xmlText = await readEpgBuffer(await file.arrayBuffer(), name);
+          applyParsedEpg(parseXmltv(xmlText), name);
+        } catch (err) { el.epgStatusLine.textContent = err.message || t('epgErrParse'); }
       }
 
       async function handleLoadEpgUrl(silent = false) {
         const url = el.epgUrlInput.value.trim();
         if (!url) return;
-        try { new URL(url); } catch {
-          if (!silent) el.epgStatusLine.textContent = t('errUrlMalformed');
-          return;
-        }
-        el.btnLoadEpgUrl.disabled = true;
-        el.btnLoadEpgUrl.textContent = t('loadingBtn');
+        try { new URL(url); } catch { if (!silent) el.epgStatusLine.textContent = t('errUrlMalformed'); return; }
+        el.btnLoadEpgUrl.disabled = true; el.btnLoadEpgUrl.textContent = t('loadingBtn');
         el.epgStatusLine.textContent = t('epgLoading');
         try {
           const res = await fetch(url, { mode: 'cors' });
           if (!res.ok) throw new Error(t('errUrlHttp', { status: res.status, statusText: res.statusText || t('errorWord') }));
-          const buf = await res.arrayBuffer();
-          const xmlText = await readEpgBuffer(buf, url);
-          const parsed = parseXmltv(xmlText);
-          applyParsedEpg(parsed, url);
+          const xmlText = await readEpgBuffer(await res.arrayBuffer(), url);
+          applyParsedEpg(parseXmltv(xmlText), url);
         } catch (err) {
-          if (!silent) {
-            el.epgStatusLine.textContent = err instanceof TypeError ? t('epgErrCors') : (err.message || t('epgErrParse'));
-          } else {
-            updateEpgUiStatus();
-          }
-        } finally {
-          el.btnLoadEpgUrl.disabled = false;
-          el.btnLoadEpgUrl.textContent = t('epgLoadUrlBtn');
-        }
+          if (!silent) el.epgStatusLine.textContent = err instanceof TypeError ? t('epgErrCors') : (err.message || t('epgErrParse'));
+          else updateEpgUiStatus();
+        } finally { el.btnLoadEpgUrl.disabled = false; el.btnLoadEpgUrl.textContent = t('epgLoadUrlBtn'); }
       }
 
       function clearEpg() {
-        state.epg.loaded = false;
-        state.epg.source = '';
-        state.epg.channelCount = 0;
-        state.epg.progCount = 0;
-        state.epg.programmesById.clear();
-        state.epg.nameToIds.clear();
-        updateEpgUiStatus();
-        renderChannelPage();
+        state.epg.loaded = false; state.epg.source = ''; state.epg.channelCount = 0; state.epg.progCount = 0;
+        state.epg.programmesById.clear(); state.epg.nameToIds.clear();
+        updateEpgUiStatus(); renderChannelPage();
         if (state.activeChannel) updatePlayerEpgBar(state.activeChannel);
         showToast(t('epgClearedToast'));
       }
 
+      function escapeHtml(str) {
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
       function updatePlayerEpgBar(channel) {
-        if (!state.epg.loaded || !channel) {
-          el.playerEpgBar.classList.remove('show');
-          return;
-        }
+        if (!state.epg.loaded || !channel) { el.playerEpgBar.classList.remove('show'); return; }
         el.playerEpgBar.classList.add('show');
         const info = getChannelEpgNowNext(channel);
         if (!info || (!info.current && !info.next)) {
           el.playerEpgNow.innerHTML = `<span style="color: var(--text-muted);">${t('epgNoProgramForChannel')}</span>`;
-          el.playerEpgNext.textContent = '';
-          el.playerEpgDesc.textContent = '';
-          el.playerEpgProgressTrack.style.display = 'none';
+          el.playerEpgNext.textContent = ''; el.playerEpgDesc.textContent = ''; el.playerEpgProgressTrack.style.display = 'none';
           return;
         }
-
         if (info.current) {
           const range = formatTimeRange(info.current.startMs, info.current.stopMs);
           el.playerEpgNow.innerHTML = `<strong>${t('epgNowPrefix')}</strong> ${escapeHtml(info.current.title)} <span style="color:var(--text-muted);">(${range})</span>`;
@@ -1615,20 +1696,9 @@
           el.playerEpgProgressFill.style.width = `${pct.toFixed(1)}%`;
         } else {
           el.playerEpgNow.innerHTML = `<span style="color: var(--text-muted);">—</span>`;
-          el.playerEpgDesc.textContent = '';
-          el.playerEpgProgressTrack.style.display = 'none';
+          el.playerEpgDesc.textContent = ''; el.playerEpgProgressTrack.style.display = 'none';
         }
-
-        if (info.next) {
-          const nextRange = formatTimeRange(info.next.startMs, info.next.stopMs);
-          el.playerEpgNext.textContent = `${t('epgNextPrefix')} ${info.next.title} (${nextRange})`;
-        } else {
-          el.playerEpgNext.textContent = '';
-        }
-      }
-
-      function escapeHtml(str) {
-        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        el.playerEpgNext.textContent = info.next ? `${t('epgNextPrefix')} ${info.next.title} (${formatTimeRange(info.next.startMs, info.next.stopMs)})` : '';
       }
 
       // ============================
@@ -1647,9 +1717,7 @@
           ch.isDupName = nameCounts.get(ch.normName) > 1;
           if (ch.isDupUrl || ch.isDupName) anyDupCount++;
           if (!seenBothUrls.has(ch.normUrl) && !seenBothNames.has(ch.normName)) {
-            seenBothUrls.add(ch.normUrl);
-            seenBothNames.add(ch.normName);
-            bothKept++;
+            seenBothUrls.add(ch.normUrl); seenBothNames.add(ch.normName); bothKept++;
           }
         }
         const total = state.channels.length;
@@ -1691,9 +1759,7 @@
           const seenUrls = new Set(), seenNames = new Set(), winners = new Set();
           for (const ch of prioritized) {
             if (!seenUrls.has(ch.normUrl) && !seenNames.has(ch.normName)) {
-              seenUrls.add(ch.normUrl);
-              seenNames.add(ch.normName);
-              winners.add(ch);
+              seenUrls.add(ch.normUrl); seenNames.add(ch.normName); winners.add(ch);
             }
           }
           kept = state.channels.filter((ch) => winners.has(ch));
@@ -1703,10 +1769,7 @@
         kept.forEach((ch, idx) => { ch.uid = idx; if (selectedChannels.has(ch)) state.selected.add(idx); });
         state.channels = kept;
         if (state.duplicatesOnly) { state.duplicatesOnly = false; el.btnDuplicatesOnly.classList.remove('active'); }
-        analyzeDuplicates();
-        populateGroupFilter();
-        applyFilters();
-        updateScanSummary();
+        analyzeDuplicates(); populateGroupFilter(); applyFilters(); updateScanSummary();
         el.dedupModal.classList.remove('open');
         showToast(removedCount > 0 ? t('toastDedupRemoved', { count: fmtNum(removedCount) }) : t('toastDedupNone'));
       }
@@ -1801,8 +1864,7 @@
           const clsMap = { testing: 'tag-status-wait', active: 'tag-status-active', dead: 'tag-status-dead', blocked: 'tag-status-blocked' };
           const badge = document.createElement('span');
           badge.className = `tag tag-ping-status ${clsMap[channel.linkStatus] || ''}`;
-          badge.textContent = getStatusDisplayText(channel);
-          badge.title = badge.textContent;
+          badge.textContent = getStatusDisplayText(channel); badge.title = badge.textContent;
           tags.appendChild(badge);
         }
       }
@@ -1820,11 +1882,8 @@
       function updateScanSummary() {
         const { active, dead, blocked } = getScanCounts();
         const hasAny = state.scan.running || active > 0 || dead > 0 || blocked > 0;
-        el.summaryActive.textContent = fmtNum(active);
-        el.summaryDead.textContent = fmtNum(dead);
-        el.summaryBlocked.textContent = fmtNum(blocked);
-        el.activeFilterCount.textContent = fmtNum(active);
-        el.deadRemoveCount.textContent = fmtNum(dead);
+        el.summaryActive.textContent = fmtNum(active); el.summaryDead.textContent = fmtNum(dead); el.summaryBlocked.textContent = fmtNum(blocked);
+        el.activeFilterCount.textContent = fmtNum(active); el.deadRemoveCount.textContent = fmtNum(dead);
         el.btnRemoveDead.disabled = dead === 0 || state.scan.running;
         el.scanPanel.classList.toggle('show', hasAny);
         if (state.scan.running) {
@@ -1852,7 +1911,7 @@
         if (state.scan.running || targets.length === 0) return;
         state.scan.running = true; state.scan.stopRequested = false; state.scan.total = targets.length; state.scan.done = 0;
         el.btnTestStreams.style.display = 'none'; el.btnStopTest.style.display = 'inline-flex';
-        el.btnRemoveDead.disabled = true; el.btnOpenDedup.disabled = true; el.btnResetList.disabled = true; el.btnClearPlaylist.disabled = true;
+        el.btnRemoveDead.disabled = true; el.btnOpenDedup.disabled = true; el.btnOpenCleanNames.disabled = true; el.btnResetList.disabled = true; el.btnClearPlaylist.disabled = true;
         updateScanSummary();
 
         let cursor = 0;
@@ -1985,8 +2044,7 @@
           const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
           showAlert(t('infoReadingFile', { name: file.name, size: sizeMB }), 'info');
           await new Promise((r) => setTimeout(r, 30));
-          const text = await readFileAsText(file);
-          loadPlaylistText(text, { custom: file.name });
+          loadPlaylistText(await readFileAsText(file), { custom: file.name });
         } catch (err) { showAlert(t('errFileReadNamed', { name: file.name, msg: err.message || err })); }
       }
 
@@ -2006,11 +2064,11 @@
 
       function loadDemoPlaylist() {
         const demoM3U = `#EXTM3U
-#EXTINF:-1 tvg-id="BigBuckBunny" tvg-name="Big Buck Bunny" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/c/c5/Big_buck_bunny_poster_big.jpg" tvg-language="English" tvg-country="NL" group-title="Cinéma & Animation",Big Buck Bunny (HLS)
+#EXTINF:-1 tvg-id="BigBuckBunny" tvg-name="Big Buck Bunny" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/c/c5/Big_buck_bunny_poster_big.jpg" tvg-language="English" tvg-country="NL" group-title="Cinéma & Animation",FR| Big Buck Bunny 4K
 https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 #EXTINF:-1 tvg-id="Sintel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Sintel_poster.jpg/320px-Sintel_poster.jpg" tvg-language="English" tvg-country="NL" group-title="Cinéma & Animation",Sintel 4K Test (HLS)
 https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8
-#EXTINF:-1 tvg-id="BigBuckBunnyDup" tvg-logo="" tvg-language="English" tvg-country="NL" group-title="Doublons Test",Big Buck Bunny (HLS)
+#EXTINF:-1 tvg-id="BigBuckBunnyDup" tvg-logo="" tvg-language="English" tvg-country="NL" group-title="Doublons Test",FR| Big Buck Bunny 4K
 https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 #EXTINF:-1 tvg-id="BipBop" tvg-logo="" tvg-language="English" tvg-country="US" group-title="Tests HLS",Apple BipBop Stream
 https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8
@@ -2076,6 +2134,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         el.btnActiveOnly.disabled = total === 0;
         el.btnDuplicatesOnly.disabled = anyDups === 0 && !state.duplicatesOnly;
         el.btnOpenDedup.disabled = state.dupStats.bothRemovable === 0 || state.scan.running;
+        el.btnOpenCleanNames.disabled = total === 0 || state.scan.running;
       }
 
       function getInitials(name) {
@@ -2130,8 +2189,14 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
           const card = document.createElement('article');
           card.className = `channel-card${isSelected ? ' selected' : ''}${ch.linkStatus === 'dead' ? ' status-dead' : ''}`;
           card.dataset.uid = ch.uid;
+          card.draggable = true;
 
           const head = document.createElement('div'); head.className = 'channel-head';
+          const dragHandle = document.createElement('span');
+          dragHandle.className = 'drag-handle';
+          dragHandle.title = t('dragHandleTitle');
+          dragHandle.textContent = '⋮⋮';
+
           const cbWrap = document.createElement('div'); cbWrap.className = 'checkbox-wrap';
           const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'checkbox'; cb.checked = isSelected;
           cb.setAttribute('aria-label', t('selectChannelAria', { name: ch.name }));
@@ -2141,7 +2206,10 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
           buildLogoElement(ch, logoBox);
 
           const info = document.createElement('div'); info.className = 'channel-info';
-          const title = document.createElement('div'); title.className = 'channel-title'; title.title = ch.name; title.textContent = ch.name;
+          const title = document.createElement('div'); title.className = 'channel-title';
+          title.title = `${ch.name} (${t('renameHintTitle')})`;
+          title.textContent = ch.name;
+
           const tags = document.createElement('div'); tags.className = 'channel-tags';
           const groupTag = document.createElement('span'); groupTag.className = 'tag tag-group'; groupTag.textContent = ch.group; tags.appendChild(groupTag);
           if (ch.isDupUrl || ch.isDupName) {
@@ -2161,8 +2229,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
           favBtn.className = `fav-btn${isFav ? ' active' : ''}`; favBtn.type = 'button';
           favBtn.title = isFav ? t('removeFavTitle') : t('addFavTitle'); favBtn.setAttribute('aria-label', favBtn.title);
           favBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-          head.append(cbWrap, logoBox, info, favBtn);
-
+          head.append(dragHandle, cbWrap, logoBox, info, favBtn);
           card.appendChild(head);
 
           if (state.epg.loaded) {
@@ -2214,6 +2281,89 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         if (!added && state.favoritesOnly) applyFilters(); else updateStats();
         if (state.activeChannel && state.activeChannel.uid === channel.uid) updatePlayerFavButton(channel);
       }
+
+      // Inline Double-Click Rename
+      el.channelsContainer.addEventListener('dblclick', (e) => {
+        const titleEl = e.target.closest('.channel-title');
+        if (!titleEl) return;
+        const card = titleEl.closest('.channel-card');
+        if (!card) return;
+        const uid = Number(card.dataset.uid);
+        const channel = state.channels[uid];
+        if (!channel) return;
+
+        card.draggable = false;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'inline-rename-input';
+        input.value = channel.name;
+
+        let finished = false;
+        const finish = (save) => {
+          if (finished) return;
+          finished = true;
+          card.draggable = true;
+          if (save && renameChannel(channel, input.value)) {
+            renderChannelPage();
+          } else {
+            input.replaceWith(titleEl);
+          }
+        };
+
+        input.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter') { ev.preventDefault(); finish(true); }
+          else if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+        });
+        input.addEventListener('blur', () => finish(true));
+
+        titleEl.replaceWith(input);
+        input.focus();
+        input.select();
+      });
+
+      // Drag & Drop Reorder
+      el.channelsContainer.addEventListener('dragstart', (e) => {
+        const card = e.target.closest('.channel-card');
+        if (!card || e.target.closest('input, button, select, a')) { e.preventDefault(); return; }
+        state.dragSourceUid = Number(card.dataset.uid);
+        card.classList.add('dragging');
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', String(state.dragSourceUid));
+        }
+      });
+
+      el.channelsContainer.addEventListener('dragover', (e) => {
+        if (state.dragSourceUid === null) return;
+        const card = e.target.closest('.channel-card');
+        if (!card || Number(card.dataset.uid) === state.dragSourceUid) return;
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        card.classList.add('drag-over');
+      });
+
+      el.channelsContainer.addEventListener('dragleave', (e) => {
+        const card = e.target.closest('.channel-card');
+        if (card) card.classList.remove('drag-over');
+      });
+
+      el.channelsContainer.addEventListener('drop', (e) => {
+        const card = e.target.closest('.channel-card');
+        if (!card || state.dragSourceUid === null) return;
+        e.preventDefault();
+        card.classList.remove('drag-over');
+        const targetUid = Number(card.dataset.uid);
+        const sourceUid = state.dragSourceUid;
+        state.dragSourceUid = null;
+        reorderChannel(sourceUid, targetUid);
+      });
+
+      el.channelsContainer.addEventListener('dragend', () => {
+        state.dragSourceUid = null;
+        el.channelsContainer.querySelectorAll('.channel-card.dragging, .channel-card.drag-over').forEach((n) => {
+          n.classList.remove('dragging', 'drag-over');
+        });
+      });
 
       el.channelsContainer.addEventListener('click', async (e) => {
         const card = e.target.closest('.channel-card');
@@ -2487,6 +2637,15 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       el.btnDemo.addEventListener('click', loadDemoPlaylist);
       el.alertClose.addEventListener('click', hideAlert);
 
+      // Clean Names Modal
+      el.btnOpenCleanNames.addEventListener('click', () => el.cleanNamesModal.classList.add('open'));
+      el.btnCloseCleanNames.addEventListener('click', () => el.cleanNamesModal.classList.remove('open'));
+      el.cleanNamesModal.addEventListener('click', (e) => { if (e.target === el.cleanNamesModal) el.cleanNamesModal.classList.remove('open'); });
+      el.btnCleanPrefixes.addEventListener('click', () => bulkCleanNames('prefixes'));
+      el.btnCleanQualities.addEventListener('click', () => bulkCleanNames('qualities'));
+      el.btnCleanCustom.addEventListener('click', () => bulkCleanNames('custom', el.customRemoveInput.value));
+      el.customRemoveInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') bulkCleanNames('custom', el.customRemoveInput.value); });
+
       // EPG Modal
       el.btnOpenEpg.addEventListener('click', () => { updateEpgUiStatus(); el.epgModal.classList.add('open'); });
       el.btnCloseEpg.addEventListener('click', () => el.epgModal.classList.remove('open'));
@@ -2588,6 +2747,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         if (e.key === 'Escape') {
           if (document.fullscreenElement || document.webkitFullscreenElement) return;
           if (el.playerModal.classList.contains('open')) closePlayerModal();
+          if (el.cleanNamesModal.classList.contains('open')) el.cleanNamesModal.classList.remove('open');
           if (el.epgModal.classList.contains('open')) el.epgModal.classList.remove('open');
           if (el.helpModal.classList.contains('open')) el.helpModal.classList.remove('open');
           if (el.pasteModal.classList.contains('open')) el.pasteModal.classList.remove('open');
