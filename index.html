@@ -100,7 +100,7 @@
     .channel-card.status-dead { border-color: rgba(239, 68, 68, 0.4); }
     .channel-card.dragging { opacity: 0.42; border-style: dashed; }
     .channel-card.drag-over { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.12); }
-    .channel-head { display: flex; align-items: flex-start; gap: 9px; }
+    .channel-head { display: flex; align-items: flex-start; gap: 8px; }
     .drag-handle { color: var(--text-dim); cursor: grab; padding: 3px 2px; line-height: 1; user-select: none; font-size: 14px; letter-spacing: -1px; flex-shrink: 0; }
     .drag-handle:hover { color: var(--text-main); }
     .drag-handle:active { cursor: grabbing; }
@@ -124,9 +124,11 @@
     .tag-status-wait { color: #93c5fd; border-color: rgba(59, 130, 246, 0.35); background: var(--accent-soft); }
     .channel-epg-line { font-size: 0.76rem; color: #cbd5e1; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.22); border-radius: 6px; padding: 5px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .channel-epg-line strong { color: #34d399; }
-    .fav-btn { color: var(--text-dim); padding: 4px; border-radius: 6px; transition: color 0.15s, transform 0.1s; }
+    .card-head-btns { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+    .fav-btn, .del-btn { color: var(--text-dim); padding: 4px; border-radius: 6px; transition: color 0.15s, transform 0.1s; display: inline-flex; align-items: center; justify-content: center; }
     .fav-btn:hover { color: #fbbf24; transform: scale(1.1); }
     .fav-btn.active { color: #f59e0b; }
+    .del-btn:hover { color: #ef4444; transform: scale(1.1); }
     .channel-url { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.72rem; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: var(--bg-input); padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(36, 48, 71, 0.7); }
     .channel-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
     .channel-actions .btn { flex: 1 1 auto; }
@@ -198,6 +200,11 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         <span id="epgBtnLabel">EPG</span>
       </button>
+      <input id="mergeFileInput" class="sr-only" type="file" multiple accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/vnd.apple.mpegurl" />
+      <button id="btnMergeFiles" class="btn" type="button" data-i18n-title="mergeBtnTitle">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        <span data-i18n="mergeBtn">Fusionner (.m3u)</span>
+      </button>
       <button id="btnOpenPaste" class="btn" type="button">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
         <span data-i18n="pasteBtn">Coller texte M3U</span>
@@ -220,12 +227,12 @@
 
   <main class="container">
     <section class="loader-panel">
-      <input id="fileInput" class="sr-only" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/vnd.apple.mpegurl" />
+      <input id="fileInput" class="sr-only" type="file" multiple accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/vnd.apple.mpegurl" />
       <div id="dropzone" class="dropzone" tabindex="0">
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <strong data-i18n="dropzoneTitle">Glissez-déposez un fichier .m3u / .m3u8 ici</strong>
+        <strong data-i18n="dropzoneTitle">Glissez-déposez un ou plusieurs fichiers .m3u / .m3u8 ici</strong>
         <button id="btnPickFile" class="btn btn-primary btn-sm" type="button" data-i18n="browseFilesBtn">Parcourir mes fichiers</button>
-        <p data-i18n="dropzoneHint">Traitement 100% local dans votre navigateur</p>
+        <p data-i18n="dropzoneHint">Sélection multiple supportée · Traitement 100% local</p>
       </div>
       <div class="url-loader">
         <div>
@@ -291,6 +298,7 @@
           <button id="btnRemoveDead" class="btn btn-sm btn-danger" type="button" disabled><span data-i18n="removeDeadBtn">Retirer les liens morts</span> (<span id="deadRemoveCount">0</span>)</button>
           <button id="btnOpenDedup" class="btn btn-sm btn-warning" type="button" disabled data-i18n="cleanDuplicatesBtn">Nettoyer doublons</button>
           <button id="btnOpenCleanNames" class="btn btn-sm" type="button" disabled data-i18n="cleanNamesBtn">Nettoyer noms</button>
+          <button id="btnOpenBulkGroup" class="btn btn-sm" type="button" disabled data-i18n="changeCategoryBtn">Changer catégorie</button>
           <button id="btnResetList" class="btn btn-sm" type="button" disabled data-i18n="resetListBtn">Réinitialiser la liste</button>
           <button id="btnSelectFiltered" class="btn btn-sm" type="button" disabled data-i18n="selectAllBtn">Tout sélectionner</button>
           <button id="btnDeselectAll" class="btn btn-sm" type="button" disabled data-i18n="deselectAllBtn">Tout désélectionner</button>
@@ -325,6 +333,35 @@
       </div>
     </nav>
   </main>
+
+  <!-- Modal Changer Catégorie en masse -->
+  <div id="bulkGroupModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="bulkGroupModalTitle">
+    <div class="modal" style="max-width: 540px;">
+      <div class="modal-header">
+        <div>
+          <div id="bulkGroupModalTitle" class="modal-title" data-i18n="bulkGroupModalTitle">Changer la catégorie en masse</div>
+          <div id="bulkGroupModalSubtitle" class="modal-subtitle"></div>
+        </div>
+        <button id="btnCloseBulkGroup" class="btn btn-sm" type="button" data-i18n="closeBtn">Fermer ✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="url-loader">
+          <div>
+            <label for="bulkGroupExistingSelect" data-i18n="bulkGroupExistingLabel">Choisir une catégorie existante</label>
+            <select id="bulkGroupExistingSelect" class="input"></select>
+          </div>
+          <div>
+            <label for="bulkGroupNewInput" data-i18n="bulkGroupNewLabel">Ou saisir un nouveau nom de catégorie</label>
+            <input id="bulkGroupNewInput" type="text" class="input" data-i18n-placeholder="bulkGroupNewPlaceholder" placeholder="Ex : Mes Chaînes Sport" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btnCancelBulkGroup" class="btn btn-sm" type="button" data-i18n="cancelBtn">Annuler</button>
+        <button id="btnApplyBulkGroup" class="btn btn-primary btn-sm" type="button" data-i18n="applyBtn">Appliquer</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal Nettoyer les noms -->
   <div id="cleanNamesModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="cleanNamesModalTitle">
@@ -562,13 +599,15 @@
           helpBtnTitle: "Guide d'utilisation de M3U Studio",
           epgBtnTitle: 'Charger un guide TV (EPG XMLTV)',
           epgBtnLoaded: 'EPG ✓ ({count})',
+          mergeBtn: 'Fusionner (.m3u)',
+          mergeBtnTitle: 'Ajouter un ou plusieurs fichiers .m3u/.m3u8 à la playlist actuelle',
           pasteBtn: 'Coller texte M3U',
           demoBtn: 'Playlist démo',
           exportFilteredBtn: 'Exporter filtrées',
           exportSelectedBtn: 'Exporter sélection',
-          dropzoneTitle: 'Glissez-déposez un fichier .m3u / .m3u8 ici',
+          dropzoneTitle: 'Glissez-déposez un ou plusieurs fichiers .m3u / .m3u8 ici',
           browseFilesBtn: 'Parcourir mes fichiers',
-          dropzoneHint: 'Traitement 100% local dans votre navigateur',
+          dropzoneHint: 'Sélection multiple supportée · Traitement 100% local',
           urlLabel: 'Importer depuis une URL directe (si le serveur autorise CORS)',
           urlPlaceholder: 'https://iptv-org.github.io/iptv/languages/fra.m3u',
           loadUrlBtn: "Charger l'URL",
@@ -576,6 +615,7 @@
           urlCorsHint: "Si l'URL est bloquée (CORS), ouvrez-la dans un onglet pour télécharger le fichier puis importez-le à gauche.",
           sourcePrefix: 'Source :',
           closeAria: 'Fermer',
+          cancelBtn: 'Annuler',
           searchPlaceholder: 'Rechercher une chaîne, un groupe, un ID, un pays...',
           allCategories: 'Toutes les catégories',
           categoryAria: 'Filtrer par catégorie',
@@ -599,6 +639,7 @@
           removeDeadBtn: 'Retirer les liens morts',
           cleanDuplicatesBtn: 'Nettoyer doublons',
           cleanNamesBtn: 'Nettoyer noms',
+          changeCategoryBtn: 'Changer catégorie',
           resetListBtn: 'Réinitialiser la liste',
           selectAllBtn: 'Tout sélectionner',
           deselectAllBtn: 'Tout désélectionner',
@@ -617,7 +658,7 @@
           nextPageBtn: 'Suivant ›',
           lastPageBtn: 'Fin »',
           emptyNoPlaylistTitle: 'Aucune playlist chargée',
-          emptyNoPlaylistDesc: 'Cliquez sur <strong>Parcourir mes fichiers</strong> ou glissez-déposez un fichier <strong>.m3u</strong> / <strong>.m3u8</strong>, collez un texte M3U ou cliquez sur <strong>Playlist démo</strong>.',
+          emptyNoPlaylistDesc: 'Cliquez sur <strong>Parcourir mes fichiers</strong> ou glissez-déposez un ou plusieurs fichiers <strong>.m3u</strong> / <strong>.m3u8</strong>, collez un texte M3U ou cliquez sur <strong>Playlist démo</strong>.',
           emptyActiveNoneTitle: 'Aucune chaîne active affichée',
           emptyActiveNoneTestedZero: 'Aucune chaîne n’a encore le statut « Actif ». Lancez « Tester les flux » pour vérifier la disponibilité des liens, ou désactivez le filtre « Actifs uniquement ».',
           emptyActiveNoneFiltered: 'Aucune chaîne « Actif » ne correspond également à votre recherche ou catégorie actuelle.',
@@ -627,8 +668,20 @@
           selectChannelAria: 'Sélectionner {name}',
           dragHandleTitle: 'Maintenir et glisser pour réorganiser',
           renameHintTitle: 'Double-cliquez pour renommer la chaîne',
+          deleteChannelTitle: 'Supprimer cette chaîne de la liste',
+          toastDeletedChannel: '« {name} » retirée de la liste.',
           toastRenamed: 'Chaîne renommée : « {name} »',
           toastReordered: 'Ordre mis à jour.',
+          bulkGroupModalTitle: 'Changer la catégorie en masse',
+          bulkGroupModalSubtitle: '{count} chaîne(s) sélectionnée(s)',
+          bulkGroupExistingLabel: 'Choisir une catégorie existante',
+          bulkGroupNewLabel: 'Ou saisir un nouveau nom de catégorie',
+          bulkGroupNewPlaceholder: 'Ex : Mes Chaînes Sport',
+          bulkGroupSelectPlaceholder: '-- Sélectionner une catégorie --',
+          errBulkGroupEmpty: 'Veuillez choisir une catégorie existante ou saisir un nouveau nom.',
+          toastBulkGroupMoved: '{count} chaîne(s) déplacée(s) vers « {group} ».',
+          toastMergedFiles: '{added} chaîne(s) fusionnée(s) depuis {files} fichier(s) (Total : {total}).',
+          mergedSourceName: 'Fusion ({count} fichiers)',
           cleanNamesModalTitle: 'Nettoyer les noms de chaînes',
           cleanNamesModalSubtitle: 'Supprimez en masse les préfixes pays, tags qualité ou textes superflus',
           cleanPrefixTitle: 'Supprimer les préfixes pays / bouquet',
@@ -694,37 +747,39 @@
           helpBodyHtml: `
             <div class="help-section">
               <h3>À quoi sert M3U Studio ?</h3>
-              <p><strong>M3U Studio</strong> permet d'explorer, éditer, filtrer, nettoyer et exporter de grandes playlists TV/IPTV (même de plus de 10 000 chaînes) directement dans votre navigateur. Tout est traité <strong>localement sur votre appareil</strong> : vos fichiers ne sont envoyés sur aucun serveur.</p>
+              <p><strong>M3U Studio</strong> permet d'explorer, éditer, fusionner, filtrer, nettoyer et exporter de grandes playlists TV/IPTV (même de plus de 10 000 chaînes) directement dans votre navigateur. Tout est traité <strong>localement sur votre appareil</strong>.</p>
             </div>
             <div class="help-section">
-              <h3>1. Charger une playlist</h3>
+              <h3>1. Charger &amp; fusionner plusieurs playlists</h3>
               <ul>
-                <li><strong>Fichier local :</strong> glissez-déposez un fichier <code>.m3u</code> ou <code>.m3u8</code> ou cliquez sur <strong>Parcourir mes fichiers</strong>.</li>
-                <li><strong>URL directe :</strong> collez une adresse et cliquez sur <strong>Charger l'URL</strong>. Si le serveur bloque par sécurité (CORS), téléchargez le lien dans un nouvel onglet puis glissez le fichier à gauche.</li>
-                <li><strong>Coller texte M3U :</strong> pratique si vous avez copié le contenu brut d'une playlist (ex. via le Bloc-notes).</li>
+                <li><strong>Fichier local (ou sélection multiple) :</strong> glissez-déposez un ou plusieurs fichiers <code>.m3u</code> / <code>.m3u8</code> d'un coup, ou cliquez sur <strong>Parcourir mes fichiers</strong>.</li>
+                <li><strong>Fusionner (.m3u) :</strong> utilisez le bouton <strong>+ Fusionner (.m3u)</strong> en haut pour ajouter d'autres playlists à la liste déjà ouverte avant de nettoyer les doublons et d'exporter.</li>
+                <li><strong>URL directe / Coller texte :</strong> collez une URL (si autorisée par CORS) ou du texte brut via <strong>Coller texte M3U</strong>.</li>
               </ul>
             </div>
             <div class="help-section">
-              <h3>2. Éditer : réorganiser &amp; renommer vos chaînes</h3>
+              <h3>2. Éditer : réorganiser, renommer, catégoriser &amp; supprimer</h3>
               <ul>
-                <li><strong>Réorganiser (Glisser-déposer) :</strong> maintenez une chaîne (via la poignée <code>⋮⋮</code> ou la fiche) et déposez-la sur une autre pour changer son emplacement. Votre ordre personnalisé est conservé à l'export <code>.m3u</code>.</li>
-                <li><strong>Renommer (Double-clic) :</strong> double-cliquez directement sur le nom d'une chaîne pour le modifier (ex. effacer <code>FR| </code> ou <code>4K</code>), puis appuyez sur <strong>Entrée</strong> pour valider (ou <strong>Échap</strong> pour annuler).</li>
-                <li><strong>Nettoyer noms (en masse) :</strong> le bouton <strong>Nettoyer noms</strong> permet de retirer d'un coup les préfixes pays (<code>FR| </code>, <code>[FR] </code>…), les tags qualité (<code>4K</code>, <code>FHD</code>, <code>HD</code>…) ou un texte personnalisé sur toute la liste affichée.</li>
+                <li><strong>Réorganiser (Glisser-déposer) :</strong> maintenez une chaîne (via la poignée <code>⋮⋮</code> ou la fiche) et déposez-la sur une autre pour changer l'ordre.</li>
+                <li><strong>Renommer (Double-clic) :</strong> double-cliquez sur le nom d'une chaîne pour le modifier (<code>Entrée</code> pour valider, <code>Échap</code> pour annuler).</li>
+                <li><strong>Nettoyer noms (en masse) :</strong> supprime en un clic les préfixes (<code>FR| </code>, <code>[FR] </code>…), tags qualité (<code>4K</code>, <code>FHD</code>, <code>HD</code>…) ou un texte personnalisé.</li>
+                <li><strong>Changer catégorie (en masse) :</strong> cochez plusieurs chaînes puis cliquez sur <strong>Changer catégorie</strong> pour les déplacer toutes dans un groupe existant ou nouveau (les cases se décocheront automatiquement après validation).</li>
+                <li><strong>Supprimer une chaîne (🗑) :</strong> cliquez sur la corbeille en haut à droite d'une fiche pour la retirer. <strong>Réinitialiser la liste</strong> restaure la playlist de départ.</li>
               </ul>
             </div>
             <div class="help-section">
               <h3>3. Rechercher, filtrer &amp; tester les liens</h3>
               <ul>
                 <li><strong>Recherche &amp; filtres :</strong> filtrez par nom, catégorie, <strong>Favoris uniquement</strong> (★), <strong>Actifs uniquement</strong> ou <strong>Doublons uniquement</strong>.</li>
-                <li><strong>Tester les flux :</strong> vérifie les liens par lots (timeout 4 s) en classant chaque chaîne : <strong>Actif</strong>, <strong>Mort</strong> ou <strong>Bloqué / CORS</strong>.</li>
-                <li><strong>Nettoyer :</strong> retirez les liens <strong>Mort</strong> ou les doublons, et utilisez <strong>Réinitialiser la liste</strong> pour revenir à la playlist d'origine.</li>
+                <li><strong>Tester les flux :</strong> vérifie les liens par lots (timeout 4 s) : <strong>Actif</strong>, <strong>Mort</strong> ou <strong>Bloqué / CORS</strong>.</li>
+                <li><strong>Nettoyer :</strong> retirez les liens <strong>Mort</strong> ou les doublons avant d'exporter.</li>
               </ul>
             </div>
             <div class="help-section">
               <h3>4. Lecteur intégré (Viewer) &amp; Guide TV (EPG)</h3>
               <ul>
-                <li><strong>▶ Lire :</strong> ouvre le lecteur avec zapping (<code>◀</code> / <code>▶</code>), favori en direct (<code>★</code>), choix qualité HLS &amp; piste audio, télémétrie (résolution/débit), <strong>↻ Recharger</strong>, <strong>PiP</strong> (fenêtre flottante), <strong>📷 Capture</strong> et <strong>⛶ Plein écran</strong>.</li>
-                <li><strong>Raccourcis clavier :</strong> <code>←</code> / <code>→</code> (chaîne préc./suiv.), <code>Espace</code> ou <code>K</code> (lecture/pause), <code>M</code> (muet), <code>F</code> (plein écran), <code>P</code> (PiP), <code>Échap</code> (fermer).</li>
+                <li><strong>▶ Lire :</strong> ouvre le lecteur avec zapping (<code>◀</code> / <code>▶</code>), favori en direct (<code>★</code>), qualité HLS &amp; piste audio, télémétrie, <strong>↻ Recharger</strong>, <strong>PiP</strong>, <strong>📷 Capture</strong> et <strong>⛶ Plein écran</strong>.</li>
+                <li><strong>Raccourcis clavier :</strong> <code>←</code> / <code>→</code> (chaîne préc./suiv.), <code>Espace</code> / <code>K</code> (lecture/pause), <code>M</code> (muet), <code>F</code> (plein écran), <code>P</code> (PiP), <code>Échap</code> (fermer).</li>
                 <li><strong>Guide TV (EPG) :</strong> cliquez sur <strong>EPG</strong> pour charger un fichier XMLTV (<code>.xml</code> / <code>.xml.gz</code>) ou une URL et afficher le programme <strong>En cours / À suivre</strong>.</li>
               </ul>
             </div>
@@ -732,7 +787,7 @@
               <h3>5. Ouvrir dans VLC / MPV (Windows 11) &amp; exporter</h3>
               <ul>
                 <li><strong>Envoyer vers lecteur (.m3u) :</strong> télécharge un mini fichier <code>.m3u</code> dans <em>Téléchargements</em>. Sur Windows 11, associez <code>.m3u</code> à VLC (<em>Clic droit → Ouvrir avec → VLC → Toujours</em>).</li>
-                <li><strong>Exporter filtrées / sélection :</strong> génère votre nouveau fichier <code>.m3u</code> propre avec vos renommages et votre ordre personnalisé.</li>
+                <li><strong>Exporter filtrées / sélection :</strong> génère votre nouveau fichier <code>.m3u</code> propre avec vos renommages, catégories et ordre personnalisé.</li>
               </ul>
             </div>`,
           pasteModalTitle: 'Coller une playlist M3U / M3U8',
@@ -827,13 +882,15 @@
           helpBtnTitle: 'M3U Studio User Guide',
           epgBtnTitle: 'Load a TV Guide (EPG XMLTV)',
           epgBtnLoaded: 'EPG ✓ ({count})',
+          mergeBtn: 'Merge (.m3u)',
+          mergeBtnTitle: 'Append one or more .m3u/.m3u8 files to the current playlist',
           pasteBtn: 'Paste M3U text',
           demoBtn: 'Demo playlist',
           exportFilteredBtn: 'Export filtered',
           exportSelectedBtn: 'Export selected',
-          dropzoneTitle: 'Drag & drop a .m3u / .m3u8 file here',
+          dropzoneTitle: 'Drag & drop one or more .m3u / .m3u8 files here',
           browseFilesBtn: 'Browse files',
-          dropzoneHint: '100% local processing in your browser',
+          dropzoneHint: 'Multi-file selection supported · 100% local processing',
           urlLabel: 'Import from a direct URL (if the server allows CORS)',
           urlPlaceholder: 'https://iptv-org.github.io/iptv/languages/eng.m3u',
           loadUrlBtn: 'Load URL',
@@ -841,6 +898,7 @@
           urlCorsHint: 'If the URL is blocked (CORS), open it in a new tab to download the file, then drop it on the left.',
           sourcePrefix: 'Source:',
           closeAria: 'Close',
+          cancelBtn: 'Cancel',
           searchPlaceholder: 'Search a channel, group, ID, country...',
           allCategories: 'All categories',
           categoryAria: 'Filter by category',
@@ -864,6 +922,7 @@
           removeDeadBtn: 'Remove dead links',
           cleanDuplicatesBtn: 'Clean duplicates',
           cleanNamesBtn: 'Clean names',
+          changeCategoryBtn: 'Change category',
           resetListBtn: 'Reset list',
           selectAllBtn: 'Select all',
           deselectAllBtn: 'Deselect all',
@@ -882,7 +941,7 @@
           nextPageBtn: 'Next ›',
           lastPageBtn: 'Last »',
           emptyNoPlaylistTitle: 'No playlist loaded',
-          emptyNoPlaylistDesc: 'Click <strong>Browse files</strong> or drag & drop a <strong>.m3u</strong> / <strong>.m3u8</strong> file, paste raw M3U text, or click <strong>Demo playlist</strong>.',
+          emptyNoPlaylistDesc: 'Click <strong>Browse files</strong> or drag & drop one or more <strong>.m3u</strong> / <strong>.m3u8</strong> files, paste raw M3U text, or click <strong>Demo playlist</strong>.',
           emptyActiveNoneTitle: 'No active channels displayed',
           emptyActiveNoneTestedZero: 'No channel has the "Active" status yet. Click "Test streams" to check link availability, or disable the "Active only" filter.',
           emptyActiveNoneFiltered: 'No "Active" channel matches your current search or category filter.',
@@ -892,8 +951,20 @@
           selectChannelAria: 'Select {name}',
           dragHandleTitle: 'Hold and drag to reorder',
           renameHintTitle: 'Double-click to rename channel',
+          deleteChannelTitle: 'Remove this channel from the list',
+          toastDeletedChannel: '"{name}" removed from list.',
           toastRenamed: 'Channel renamed: "{name}"',
           toastReordered: 'Order updated.',
+          bulkGroupModalTitle: 'Bulk change category',
+          bulkGroupModalSubtitle: '{count} channel(s) selected',
+          bulkGroupExistingLabel: 'Choose an existing category',
+          bulkGroupNewLabel: 'Or enter a new category name',
+          bulkGroupNewPlaceholder: 'E.g. My Sports Channels',
+          bulkGroupSelectPlaceholder: '-- Select a category --',
+          errBulkGroupEmpty: 'Please choose an existing category or enter a new name.',
+          toastBulkGroupMoved: '{count} channel(s) moved to "{group}".',
+          toastMergedFiles: '{added} channel(s) merged from {files} file(s) (Total: {total}).',
+          mergedSourceName: 'Merged ({count} files)',
           cleanNamesModalTitle: 'Clean channel names',
           cleanNamesModalSubtitle: 'Bulk-remove country prefixes, quality tags, or custom text',
           cleanPrefixTitle: 'Remove country / provider prefixes',
@@ -959,37 +1030,39 @@
           helpBodyHtml: `
             <div class="help-section">
               <h3>What is M3U Studio for?</h3>
-              <p><strong>M3U Studio</strong> lets you browse, edit, filter, clean, and export large TV/IPTV playlists (even 10,000+ channels) right in your browser. Everything is processed <strong>locally on your device</strong>: your files are never uploaded to any server.</p>
+              <p><strong>M3U Studio</strong> lets you browse, edit, merge, filter, clean, and export large TV/IPTV playlists (even 10,000+ channels) right in your browser. Everything is processed <strong>locally on your device</strong>.</p>
             </div>
             <div class="help-section">
-              <h3>1. Load a playlist</h3>
+              <h3>1. Load &amp; merge multiple playlists</h3>
               <ul>
-                <li><strong>Local file:</strong> drag &amp; drop a <code>.m3u</code> or <code>.m3u8</code> file or click <strong>Browse files</strong>.</li>
-                <li><strong>Direct URL:</strong> paste a link and click <strong>Load URL</strong>. If blocked by CORS, download it in a new tab and drop the file on the left.</li>
-                <li><strong>Paste M3U text:</strong> handy if you copied raw playlist text (e.g. from Notepad).</li>
+                <li><strong>Local file (or multi-select):</strong> drag &amp; drop one or more <code>.m3u</code> / <code>.m3u8</code> files at once, or click <strong>Browse files</strong>.</li>
+                <li><strong>Merge (.m3u):</strong> use the <strong>+ Merge (.m3u)</strong> button in the header to append extra playlists to the currently open list before deduplicating and exporting.</li>
+                <li><strong>Direct URL / Paste text:</strong> paste a URL (if CORS-enabled) or raw text via <strong>Paste M3U text</strong>.</li>
               </ul>
             </div>
             <div class="help-section">
-              <h3>2. Edit: reorder &amp; rename channels</h3>
+              <h3>2. Edit: reorder, rename, categorize &amp; delete</h3>
               <ul>
-                <li><strong>Reorder (Drag &amp; Drop):</strong> hold and drag any channel (via the <code>⋮⋮</code> grip or card) onto another to change its position. Your custom order is preserved when exporting to <code>.m3u</code>.</li>
-                <li><strong>Rename (Double-click):</strong> double-click any channel name to edit it inline (e.g. remove <code>FR| </code> or <code>4K</code>), then press <strong>Enter</strong> to save (or <strong>Esc</strong> to cancel).</li>
-                <li><strong>Clean names (bulk):</strong> click <strong>Clean names</strong> to strip country prefixes (<code>FR| </code>, <code>[US] </code>…), quality tags (<code>4K</code>, <code>FHD</code>, <code>HD</code>…), or any custom text across all visible channels.</li>
+                <li><strong>Reorder (Drag &amp; Drop):</strong> hold and drag any channel (via the <code>⋮⋮</code> grip or card) onto another to change order.</li>
+                <li><strong>Rename (Double-click):</strong> double-click any channel name to edit it inline (<code>Enter</code> to save, <code>Esc</code> to cancel).</li>
+                <li><strong>Clean names (bulk):</strong> strip country prefixes (<code>FR| </code>, <code>[US] </code>…), quality tags (<code>4K</code>, <code>FHD</code>, <code>HD</code>…), or custom text across visible channels.</li>
+                <li><strong>Change category (bulk):</strong> select channels with checkboxes and click <strong>Change category</strong> to move them to an existing or new group (checkboxes automatically clear afterward).</li>
+                <li><strong>Delete single channel (🗑):</strong> click the trash icon on any card to remove it. Use <strong>Reset list</strong> to restore the original list.</li>
               </ul>
             </div>
             <div class="help-section">
               <h3>3. Search, filter &amp; check links</h3>
               <ul>
                 <li><strong>Search &amp; filters:</strong> filter by name, category, <strong>Favorites only</strong> (★), <strong>Active only</strong>, or <strong>Duplicates only</strong>.</li>
-                <li><strong>Test streams:</strong> checks links in batches (4s timeout) and classifies them as <strong>Active</strong>, <strong>Dead</strong>, or <strong>Blocked / CORS</strong>.</li>
-                <li><strong>Cleanup:</strong> remove <strong>Dead</strong> links or duplicates, and use <strong>Reset list</strong> to restore the original playlist.</li>
+                <li><strong>Test streams:</strong> checks links in batches (4s timeout) as <strong>Active</strong>, <strong>Dead</strong>, or <strong>Blocked / CORS</strong>.</li>
+                <li><strong>Cleanup:</strong> remove <strong>Dead</strong> links or duplicates before exporting.</li>
               </ul>
             </div>
             <div class="help-section">
               <h3>4. Built-in player (Viewer) &amp; TV Guide (EPG)</h3>
               <ul>
-                <li><strong>▶ Play:</strong> opens the player with zapping (<code>◀</code> / <code>▶</code>), live favorite toggle (<code>★</code>), HLS quality &amp; audio selectors, telemetry, <strong>↻ Reload</strong>, <strong>PiP</strong> (floating window), <strong>📷 Snapshot</strong>, and <strong>⛶ Fullscreen</strong>.</li>
-                <li><strong>Keyboard shortcuts:</strong> <code>←</code> / <code>→</code> (prev/next), <code>Space</code> or <code>K</code> (play/pause), <code>M</code> (mute), <code>F</code> (fullscreen), <code>P</code> (PiP), <code>Esc</code> (close).</li>
+                <li><strong>▶ Play:</strong> opens the player with zapping (<code>◀</code> / <code>▶</code>), live favorite toggle (<code>★</code>), HLS quality &amp; audio selectors, telemetry, <strong>↻ Reload</strong>, <strong>PiP</strong>, <strong>📷 Snapshot</strong>, and <strong>⛶ Fullscreen</strong>.</li>
+                <li><strong>Keyboard shortcuts:</strong> <code>←</code> / <code>→</code> (prev/next), <code>Space</code> / <code>K</code> (play/pause), <code>M</code> (mute), <code>F</code> (fullscreen), <code>P</code> (PiP), <code>Esc</code> (close).</li>
                 <li><strong>TV Guide (EPG):</strong> click <strong>EPG</strong> to load an XMLTV file (<code>.xml</code> / <code>.xml.gz</code>) or URL to display <strong>Now / Next</strong> programs.</li>
               </ul>
             </div>
@@ -997,7 +1070,7 @@
               <h3>5. Open in VLC / MPV (Windows 11) &amp; export</h3>
               <ul>
                 <li><strong>Send to player (.m3u):</strong> downloads a mini <code>.m3u</code> file into <em>Downloads</em>. On Windows 11, associate <code>.m3u</code> with VLC (<em>Right-click → Open with → VLC → Always</em>).</li>
-                <li><strong>Export filtered / selected:</strong> generates a clean <code>.m3u</code> file keeping your renamed titles and custom order.</li>
+                <li><strong>Export filtered / selected:</strong> generates a clean <code>.m3u</code> file keeping your renamed titles, categories, and custom order.</li>
               </ul>
             </div>`,
           pasteModalTitle: 'Paste an M3U / M3U8 playlist',
@@ -1084,174 +1157,83 @@
         }
       };
 
-      function loadLanguage() {
-        try { return localStorage.getItem(LANG_STORAGE_KEY) === 'en' ? 'en' : 'fr'; } catch { return 'fr'; }
-      }
-      function saveLanguage(lang) {
-        try { localStorage.setItem(LANG_STORAGE_KEY, lang); } catch {}
-      }
-
+      function loadLanguage() { try { return localStorage.getItem(LANG_STORAGE_KEY) === 'en' ? 'en' : 'fr'; } catch { return 'fr'; } }
+      function saveLanguage(lang) { try { localStorage.setItem(LANG_STORAGE_KEY, lang); } catch {} }
       let currentLang = loadLanguage();
-
       function t(key, params = {}) {
         const dict = translations[currentLang] || translations.fr;
         let str = dict[key] ?? translations.fr[key] ?? key;
         for (const [k, v] of Object.entries(params)) str = str.replaceAll(`{${k}}`, String(v));
         return str;
       }
-
       function fmtNum(n) { return Number(n).toLocaleString(t('locale')); }
 
       const state = {
-        originalChannels: [],
-        channels: [],
-        filtered: [],
-        favorites: loadFavorites(),
-        selected: new Set(),
-        search: '',
-        group: '',
-        favoritesOnly: false,
-        activeOnly: false,
-        duplicatesOnly: false,
-        page: 1,
-        pageSize: 60,
-        sourceKey: '',
-        sourceCustom: '',
-        activeChannel: null,
-        dragSourceUid: null,
+        originalChannels: [], channels: [], filtered: [], favorites: loadFavorites(), selected: new Set(),
+        search: '', group: '', favoritesOnly: false, activeOnly: false, duplicatesOnly: false,
+        page: 1, pageSize: 60, sourceKey: '', sourceCustom: '', sourceParams: {},
+        activeChannel: null, dragSourceUid: null,
         dupStats: { anyDupCount: 0, urlRemovable: 0, nameRemovable: 0, bothRemovable: 0 },
         scan: { running: false, stopRequested: false, total: 0, done: 0, activeControllers: new Set() },
         epg: { loaded: false, source: '', detectedUrl: '', channelCount: 0, progCount: 0, programmesById: new Map(), nameToIds: new Map() }
       };
 
-      let hlsInstance = null;
-      let searchDebounceTimer = null;
-      let liveActiveRefreshTimer = null;
-      let epgRefreshTimer = null;
+      let hlsInstance = null, searchDebounceTimer = null, liveActiveRefreshTimer = null, epgRefreshTimer = null;
 
       const el = {
         btnLangToggle: document.getElementById('btnLangToggle'),
-        dropzone: document.getElementById('dropzone'),
-        btnPickFile: document.getElementById('btnPickFile'),
-        fileInput: document.getElementById('fileInput'),
-        urlInput: document.getElementById('urlInput'),
-        btnLoadUrl: document.getElementById('btnLoadUrl'),
-        btnDemo: document.getElementById('btnDemo'),
-        btnOpenHelp: document.getElementById('btnOpenHelp'),
-        btnOpenEpg: document.getElementById('btnOpenEpg'),
-        epgBtnLabel: document.getElementById('epgBtnLabel'),
-        btnOpenPaste: document.getElementById('btnOpenPaste'),
-        sourceLabel: document.getElementById('sourceLabel'),
-        alertBox: document.getElementById('alertBox'),
-        alertBody: document.getElementById('alertBody'),
-        alertClose: document.getElementById('alertClose'),
-        searchInput: document.getElementById('searchInput'),
-        groupSelect: document.getElementById('groupSelect'),
-        btnFavoritesOnly: document.getElementById('btnFavoritesOnly'),
-        btnActiveOnly: document.getElementById('btnActiveOnly'),
-        activeFilterCount: document.getElementById('activeFilterCount'),
-        btnDuplicatesOnly: document.getElementById('btnDuplicatesOnly'),
-        dupFilterCount: document.getElementById('dupFilterCount'),
-        pageSizeSelect: document.getElementById('pageSizeSelect'),
-        filteredCount: document.getElementById('filteredCount'),
-        totalCount: document.getElementById('totalCount'),
-        favoritesCount: document.getElementById('favoritesCount'),
-        selectedCount: document.getElementById('selectedCount'),
-        duplicatesCount: document.getElementById('duplicatesCount'),
-        exportFilteredCount: document.getElementById('exportFilteredCount'),
-        exportSelectedCount: document.getElementById('exportSelectedCount'),
-        btnTestStreams: document.getElementById('btnTestStreams'),
-        btnStopTest: document.getElementById('btnStopTest'),
-        btnRemoveDead: document.getElementById('btnRemoveDead'),
-        deadRemoveCount: document.getElementById('deadRemoveCount'),
-        btnOpenDedup: document.getElementById('btnOpenDedup'),
-        btnOpenCleanNames: document.getElementById('btnOpenCleanNames'),
-        btnResetList: document.getElementById('btnResetList'),
-        btnSelectFiltered: document.getElementById('btnSelectFiltered'),
-        btnDeselectAll: document.getElementById('btnDeselectAll'),
-        btnClearPlaylist: document.getElementById('btnClearPlaylist'),
-        btnExportFiltered: document.getElementById('btnExportFiltered'),
-        btnExportSelected: document.getElementById('btnExportSelected'),
-        scanPanel: document.getElementById('scanPanel'),
-        scanStatusText: document.getElementById('scanStatusText'),
-        summaryActive: document.getElementById('summaryActive'),
-        summaryDead: document.getElementById('summaryDead'),
-        summaryBlocked: document.getElementById('summaryBlocked'),
-        scanProgressText: document.getElementById('scanProgressText'),
-        scanProgressBar: document.getElementById('scanProgressBar'),
-        channelsContainer: document.getElementById('channelsContainer'),
-        paginationBar: document.getElementById('paginationBar'),
-        paginationInfo: document.getElementById('paginationInfo'),
-        pageIndicator: document.getElementById('pageIndicator'),
-        btnFirstPage: document.getElementById('btnFirstPage'),
-        btnPrevPage: document.getElementById('btnPrevPage'),
-        btnNextPage: document.getElementById('btnNextPage'),
-        btnLastPage: document.getElementById('btnLastPage'),
-        cleanNamesModal: document.getElementById('cleanNamesModal'),
-        btnCloseCleanNames: document.getElementById('btnCloseCleanNames'),
-        btnCleanPrefixes: document.getElementById('btnCleanPrefixes'),
-        btnCleanQualities: document.getElementById('btnCleanQualities'),
-        customRemoveInput: document.getElementById('customRemoveInput'),
-        btnCleanCustom: document.getElementById('btnCleanCustom'),
-        epgModal: document.getElementById('epgModal'),
-        epgFileInput: document.getElementById('epgFileInput'),
-        epgDropzone: document.getElementById('epgDropzone'),
-        btnPickEpgFile: document.getElementById('btnPickEpgFile'),
-        epgUrlInput: document.getElementById('epgUrlInput'),
-        btnLoadEpgUrl: document.getElementById('btnLoadEpgUrl'),
-        epgStatusLine: document.getElementById('epgStatusLine'),
-        btnClearEpg: document.getElementById('btnClearEpg'),
-        btnCloseEpg: document.getElementById('btnCloseEpg'),
-        btnFooterCloseEpg: document.getElementById('btnFooterCloseEpg'),
-        helpModal: document.getElementById('helpModal'),
-        helpModalBody: document.getElementById('helpModalBody'),
-        btnCloseHelp: document.getElementById('btnCloseHelp'),
-        btnFooterCloseHelp: document.getElementById('btnFooterCloseHelp'),
-        pasteModal: document.getElementById('pasteModal'),
-        pasteTextarea: document.getElementById('pasteTextarea'),
-        btnClosePaste: document.getElementById('btnClosePaste'),
-        btnSubmitPaste: document.getElementById('btnSubmitPaste'),
-        dedupModal: document.getElementById('dedupModal'),
-        btnCloseDedup: document.getElementById('btnCloseDedup'),
-        dedupUrlRemovable: document.getElementById('dedupUrlRemovable'),
-        dedupNameRemovable: document.getElementById('dedupNameRemovable'),
-        dedupBothRemovable: document.getElementById('dedupBothRemovable'),
-        btnDedupUrl: document.getElementById('btnDedupUrl'),
-        btnDedupName: document.getElementById('btnDedupName'),
-        btnDedupBoth: document.getElementById('btnDedupBoth'),
-        playerModal: document.getElementById('playerModal'),
-        modalLogoBox: document.getElementById('modalLogoBox'),
-        modalChannelTitle: document.getElementById('modalChannelTitle'),
-        modalChannelMeta: document.getElementById('modalChannelMeta'),
-        btnModalFav: document.getElementById('btnModalFav'),
-        btnModalPrev: document.getElementById('btnModalPrev'),
-        btnModalNext: document.getElementById('btnModalNext'),
-        videoWrap: document.getElementById('videoWrap'),
-        videoPlayer: document.getElementById('videoPlayer'),
-        playerStatus: document.getElementById('playerStatus'),
-        playerStatusTitle: document.getElementById('playerStatusTitle'),
-        playerStatusMessage: document.getElementById('playerStatusMessage'),
-        btnStatusReload: document.getElementById('btnStatusReload'),
-        btnCloseModal: document.getElementById('btnCloseModal'),
-        btnModalSendPlayer: document.getElementById('btnModalSendPlayer'),
-        btnCopyFromPlayer: document.getElementById('btnCopyFromPlayer'),
-        btnFooterSendPlayer: document.getElementById('btnFooterSendPlayer'),
-        btnFooterCopy: document.getElementById('btnFooterCopy'),
-        badgeLive: document.getElementById('badgeLive'),
-        badgeResolution: document.getElementById('badgeResolution'),
-        badgeBitrate: document.getElementById('badgeBitrate'),
-        qualitySelect: document.getElementById('qualitySelect'),
-        audioSelect: document.getElementById('audioSelect'),
-        btnPlayerReload: document.getElementById('btnPlayerReload'),
-        btnPlayerPip: document.getElementById('btnPlayerPip'),
-        btnPlayerSnapshot: document.getElementById('btnPlayerSnapshot'),
-        btnPlayerFullscreen: document.getElementById('btnPlayerFullscreen'),
-        playerEpgBar: document.getElementById('playerEpgBar'),
-        playerEpgNow: document.getElementById('playerEpgNow'),
-        playerEpgNext: document.getElementById('playerEpgNext'),
-        playerEpgDesc: document.getElementById('playerEpgDesc'),
-        playerEpgProgressTrack: document.getElementById('playerEpgProgressTrack'),
-        playerEpgProgressFill: document.getElementById('playerEpgProgressFill'),
+        dropzone: document.getElementById('dropzone'), btnPickFile: document.getElementById('btnPickFile'), fileInput: document.getElementById('fileInput'),
+        mergeFileInput: document.getElementById('mergeFileInput'), btnMergeFiles: document.getElementById('btnMergeFiles'),
+        urlInput: document.getElementById('urlInput'), btnLoadUrl: document.getElementById('btnLoadUrl'),
+        btnDemo: document.getElementById('btnDemo'), btnOpenHelp: document.getElementById('btnOpenHelp'),
+        btnOpenEpg: document.getElementById('btnOpenEpg'), epgBtnLabel: document.getElementById('epgBtnLabel'),
+        btnOpenPaste: document.getElementById('btnOpenPaste'), sourceLabel: document.getElementById('sourceLabel'),
+        alertBox: document.getElementById('alertBox'), alertBody: document.getElementById('alertBody'), alertClose: document.getElementById('alertClose'),
+        searchInput: document.getElementById('searchInput'), groupSelect: document.getElementById('groupSelect'),
+        btnFavoritesOnly: document.getElementById('btnFavoritesOnly'), btnActiveOnly: document.getElementById('btnActiveOnly'),
+        activeFilterCount: document.getElementById('activeFilterCount'), btnDuplicatesOnly: document.getElementById('btnDuplicatesOnly'),
+        dupFilterCount: document.getElementById('dupFilterCount'), pageSizeSelect: document.getElementById('pageSizeSelect'),
+        filteredCount: document.getElementById('filteredCount'), totalCount: document.getElementById('totalCount'),
+        favoritesCount: document.getElementById('favoritesCount'), selectedCount: document.getElementById('selectedCount'),
+        duplicatesCount: document.getElementById('duplicatesCount'), exportFilteredCount: document.getElementById('exportFilteredCount'), exportSelectedCount: document.getElementById('exportSelectedCount'),
+        btnTestStreams: document.getElementById('btnTestStreams'), btnStopTest: document.getElementById('btnStopTest'),
+        btnRemoveDead: document.getElementById('btnRemoveDead'), deadRemoveCount: document.getElementById('deadRemoveCount'),
+        btnOpenDedup: document.getElementById('btnOpenDedup'), btnOpenCleanNames: document.getElementById('btnOpenCleanNames'),
+        btnOpenBulkGroup: document.getElementById('btnOpenBulkGroup'), btnResetList: document.getElementById('btnResetList'),
+        btnSelectFiltered: document.getElementById('btnSelectFiltered'), btnDeselectAll: document.getElementById('btnDeselectAll'),
+        btnClearPlaylist: document.getElementById('btnClearPlaylist'), btnExportFiltered: document.getElementById('btnExportFiltered'), btnExportSelected: document.getElementById('btnExportSelected'),
+        scanPanel: document.getElementById('scanPanel'), scanStatusText: document.getElementById('scanStatusText'),
+        summaryActive: document.getElementById('summaryActive'), summaryDead: document.getElementById('summaryDead'), summaryBlocked: document.getElementById('summaryBlocked'),
+        scanProgressText: document.getElementById('scanProgressText'), scanProgressBar: document.getElementById('scanProgressBar'),
+        channelsContainer: document.getElementById('channelsContainer'), paginationBar: document.getElementById('paginationBar'),
+        paginationInfo: document.getElementById('paginationInfo'), pageIndicator: document.getElementById('pageIndicator'),
+        btnFirstPage: document.getElementById('btnFirstPage'), btnPrevPage: document.getElementById('btnPrevPage'), btnNextPage: document.getElementById('btnNextPage'), btnLastPage: document.getElementById('btnLastPage'),
+        bulkGroupModal: document.getElementById('bulkGroupModal'), bulkGroupModalSubtitle: document.getElementById('bulkGroupModalSubtitle'),
+        bulkGroupExistingSelect: document.getElementById('bulkGroupExistingSelect'), bulkGroupNewInput: document.getElementById('bulkGroupNewInput'),
+        btnCloseBulkGroup: document.getElementById('btnCloseBulkGroup'), btnCancelBulkGroup: document.getElementById('btnCancelBulkGroup'), btnApplyBulkGroup: document.getElementById('btnApplyBulkGroup'),
+        cleanNamesModal: document.getElementById('cleanNamesModal'), btnCloseCleanNames: document.getElementById('btnCloseCleanNames'),
+        btnCleanPrefixes: document.getElementById('btnCleanPrefixes'), btnCleanQualities: document.getElementById('btnCleanQualities'),
+        customRemoveInput: document.getElementById('customRemoveInput'), btnCleanCustom: document.getElementById('btnCleanCustom'),
+        epgModal: document.getElementById('epgModal'), epgFileInput: document.getElementById('epgFileInput'), epgDropzone: document.getElementById('epgDropzone'),
+        btnPickEpgFile: document.getElementById('btnPickEpgFile'), epgUrlInput: document.getElementById('epgUrlInput'), btnLoadEpgUrl: document.getElementById('btnLoadEpgUrl'),
+        epgStatusLine: document.getElementById('epgStatusLine'), btnClearEpg: document.getElementById('btnClearEpg'), btnCloseEpg: document.getElementById('btnCloseEpg'), btnFooterCloseEpg: document.getElementById('btnFooterCloseEpg'),
+        helpModal: document.getElementById('helpModal'), helpModalBody: document.getElementById('helpModalBody'), btnCloseHelp: document.getElementById('btnCloseHelp'), btnFooterCloseHelp: document.getElementById('btnFooterCloseHelp'),
+        pasteModal: document.getElementById('pasteModal'), pasteTextarea: document.getElementById('pasteTextarea'), btnClosePaste: document.getElementById('btnClosePaste'), btnSubmitPaste: document.getElementById('btnSubmitPaste'),
+        dedupModal: document.getElementById('dedupModal'), btnCloseDedup: document.getElementById('btnCloseDedup'),
+        dedupUrlRemovable: document.getElementById('dedupUrlRemovable'), dedupNameRemovable: document.getElementById('dedupNameRemovable'), dedupBothRemovable: document.getElementById('dedupBothRemovable'),
+        btnDedupUrl: document.getElementById('btnDedupUrl'), btnDedupName: document.getElementById('btnDedupName'), btnDedupBoth: document.getElementById('btnDedupBoth'),
+        playerModal: document.getElementById('playerModal'), modalLogoBox: document.getElementById('modalLogoBox'), modalChannelTitle: document.getElementById('modalChannelTitle'), modalChannelMeta: document.getElementById('modalChannelMeta'),
+        btnModalFav: document.getElementById('btnModalFav'), btnModalPrev: document.getElementById('btnModalPrev'), btnModalNext: document.getElementById('btnModalNext'),
+        videoWrap: document.getElementById('videoWrap'), videoPlayer: document.getElementById('videoPlayer'),
+        playerStatus: document.getElementById('playerStatus'), playerStatusTitle: document.getElementById('playerStatusTitle'), playerStatusMessage: document.getElementById('playerStatusMessage'),
+        btnStatusReload: document.getElementById('btnStatusReload'), btnCloseModal: document.getElementById('btnCloseModal'),
+        btnModalSendPlayer: document.getElementById('btnModalSendPlayer'), btnCopyFromPlayer: document.getElementById('btnCopyFromPlayer'),
+        btnFooterSendPlayer: document.getElementById('btnFooterSendPlayer'), btnFooterCopy: document.getElementById('btnFooterCopy'),
+        badgeLive: document.getElementById('badgeLive'), badgeResolution: document.getElementById('badgeResolution'), badgeBitrate: document.getElementById('badgeBitrate'),
+        qualitySelect: document.getElementById('qualitySelect'), audioSelect: document.getElementById('audioSelect'),
+        btnPlayerReload: document.getElementById('btnPlayerReload'), btnPlayerPip: document.getElementById('btnPlayerPip'), btnPlayerSnapshot: document.getElementById('btnPlayerSnapshot'), btnPlayerFullscreen: document.getElementById('btnPlayerFullscreen'),
+        playerEpgBar: document.getElementById('playerEpgBar'), playerEpgNow: document.getElementById('playerEpgNow'), playerEpgNext: document.getElementById('playerEpgNext'), playerEpgDesc: document.getElementById('playerEpgDesc'),
+        playerEpgProgressTrack: document.getElementById('playerEpgProgressTrack'), playerEpgProgressFill: document.getElementById('playerEpgProgressFill'),
         toastContainer: document.getElementById('toastContainer')
       };
 
@@ -1271,29 +1253,20 @@
         updateEpgUiStatus();
         if (!el.btnLoadUrl.disabled) el.btnLoadUrl.textContent = t('loadUrlBtn');
         if (!el.btnLoadEpgUrl.disabled) el.btnLoadEpgUrl.textContent = t('epgLoadUrlBtn');
-        if (state.activeChannel) {
-          updatePlayerHeader(state.activeChannel);
-          updatePlayerEpgBar(state.activeChannel);
-        } else {
-          el.modalChannelTitle.textContent = t('playerModalDefaultTitle');
-        }
+        if (state.activeChannel) { updatePlayerHeader(state.activeChannel); updatePlayerEpgBar(state.activeChannel); }
+        else el.modalChannelTitle.textContent = t('playerModalDefaultTitle');
       }
 
       function updateSourceLabel() {
         if (!state.sourceKey && !state.sourceCustom) { el.sourceLabel.textContent = ''; return; }
-        const label = state.sourceKey ? t(state.sourceKey) : state.sourceCustom;
+        const label = state.sourceKey ? t(state.sourceKey, state.sourceParams) : state.sourceCustom;
         el.sourceLabel.textContent = `${t('sourcePrefix')} ${label}`;
       }
 
       function toggleLanguage() {
         currentLang = currentLang === 'fr' ? 'en' : 'fr';
         saveLanguage(currentLang);
-        applyTranslations();
-        populateGroupFilter();
-        analyzeDuplicates();
-        updateStats();
-        updateScanSummary();
-        renderChannelPage();
+        applyTranslations(); populateGroupFilter(); analyzeDuplicates(); updateStats(); updateScanSummary(); renderChannelPage();
       }
 
       function loadFavorites() {
@@ -1304,30 +1277,22 @@
           return Array.isArray(parsed) ? new Set(parsed) : new Set();
         } catch { return new Set(); }
       }
-      function saveFavorites() {
-        try { localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify([...state.favorites])); } catch { showToast(t('errStorageSave')); }
-      }
+      function saveFavorites() { try { localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify([...state.favorites])); } catch { showToast(t('errStorageSave')); } }
       function getFavoriteKey(ch) { return ch.url; }
 
       function showAlert(message, type = 'error', actionUrl = '') {
         el.alertBox.className = `alert show alert-${type}`;
         el.alertBody.innerHTML = '';
-        const span = document.createElement('span');
-        span.textContent = message;
-        el.alertBody.appendChild(span);
+        const span = document.createElement('span'); span.textContent = message; el.alertBody.appendChild(span);
         if (actionUrl) {
-          const link = document.createElement('a');
-          link.href = actionUrl; link.target = '_blank'; link.rel = 'noopener noreferrer';
-          link.className = 'btn btn-sm'; link.textContent = t('openUrlTabBtn');
-          el.alertBody.appendChild(link);
+          const link = document.createElement('a'); link.href = actionUrl; link.target = '_blank'; link.rel = 'noopener noreferrer';
+          link.className = 'btn btn-sm'; link.textContent = t('openUrlTabBtn'); el.alertBody.appendChild(link);
         }
       }
       function hideAlert() { el.alertBox.className = 'alert'; el.alertBody.innerHTML = ''; }
       function showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`; toast.textContent = message;
-        el.toastContainer.appendChild(toast);
-        setTimeout(() => toast.remove(), 2600);
+        const toast = document.createElement('div'); toast.className = `toast ${type}`; toast.textContent = message;
+        el.toastContainer.appendChild(toast); setTimeout(() => toast.remove(), 2600);
       }
 
       function rebuildSearchIndex(ch) {
@@ -1353,19 +1318,13 @@
         const attrs = {};
         const attrRegex = /([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s,]+))/g;
         let match;
-        while ((match = attrRegex.exec(metaPart)) !== null) {
-          attrs[match[1].toLowerCase()] = (match[2] ?? match[3] ?? match[4] ?? '').trim();
-        }
+        while ((match = attrRegex.exec(metaPart)) !== null) attrs[match[1].toLowerCase()] = (match[2] ?? match[3] ?? match[4] ?? '').trim();
         const durationMatch = metaPart.trim().match(/^(-?\d+(?:\.\d+)?)/);
         return {
           duration: durationMatch ? durationMatch[1] : '-1',
           name: namePart || attrs['tvg-name'] || t('unnamedChannel'),
-          group: attrs['group-title'] || '',
-          logo: attrs['tvg-logo'] || '',
-          tvgId: attrs['tvg-id'] || '',
-          language: attrs['tvg-language'] || '',
-          country: attrs['tvg-country'] || '',
-          tvgName: attrs['tvg-name'] || ''
+          group: attrs['group-title'] || '', logo: attrs['tvg-logo'] || '', tvgId: attrs['tvg-id'] || '',
+          language: attrs['tvg-language'] || '', country: attrs['tvg-country'] || '', tvgName: attrs['tvg-name'] || ''
         };
       }
 
@@ -1405,24 +1364,10 @@
             const meta = pendingMeta || { duration: '-1', name: extractNameFromUrl(line), group: '', logo: '', tvgId: '', language: '', country: '', tvgName: '' };
             const group = (meta.group || pendingExtGrp || 'Non classé').trim();
             const ch = {
-              uid: channels.length,
-              duration: meta.duration,
-              name: meta.name,
-              normName: '',
-              group,
-              logo: meta.logo,
-              tvgId: meta.tvgId,
-              language: meta.language,
-              country: meta.country,
-              tvgName: meta.tvgName,
-              url: line,
-              normUrl: line.trim(),
-              isDupUrl: false,
-              isDupName: false,
-              linkStatus: null,
-              linkDetailKey: '',
-              linkDetailRaw: '',
-              searchIndex: ''
+              uid: channels.length, duration: meta.duration, name: meta.name, normName: '', group, logo: meta.logo,
+              tvgId: meta.tvgId, language: meta.language, country: meta.country, tvgName: meta.tvgName,
+              url: line, normUrl: line.trim(), isDupUrl: false, isDupName: false,
+              linkStatus: null, linkDetailKey: '', linkDetailRaw: '', searchIndex: ''
             };
             rebuildSearchIndex(ch);
             channels.push(ch);
@@ -1435,15 +1380,12 @@
 
       function normalizeName(name) { return String(name || '').trim().toLowerCase().replace(/\s+/g, ' '); }
       function extractNameFromUrl(url) {
-        try {
-          const u = new URL(url);
-          const last = u.pathname.split('/').filter(Boolean).pop();
-          return last ? decodeURIComponent(last) : u.hostname;
-        } catch { return t('untitledStream'); }
+        try { const u = new URL(url); const last = u.pathname.split('/').filter(Boolean).pop(); return last ? decodeURIComponent(last) : u.hostname; }
+        catch { return t('untitledStream'); }
       }
 
       // ============================
-      // Edit: Rename & Clean Names & Reorder
+      // Edit: Rename, Clean Names, Reorder, Delete Single, Bulk Group
       // ============================
       function renameChannel(channel, newRawName) {
         const trimmed = String(newRawName || '').trim();
@@ -1453,45 +1395,79 @@
         analyzeDuplicates();
         updateStats();
         if (state.activeChannel && state.activeChannel.uid === channel.uid) {
-          updatePlayerHeader(channel);
-          updatePlayerEpgBar(channel);
+          updatePlayerHeader(channel); updatePlayerEpgBar(channel);
         }
         showToast(t('toastRenamed', { name: trimmed }));
         return true;
       }
 
+      function deleteSingleChannel(channel) {
+        if (!channel || state.scan.running) return;
+        const removedName = channel.name;
+        const selectedSet = new Set();
+        for (const uid of state.selected) if (state.channels[uid] && state.channels[uid] !== channel) selectedSet.add(state.channels[uid]);
+        state.channels = state.channels.filter((c) => c !== channel);
+        state.selected.clear();
+        state.channels.forEach((ch, idx) => { ch.uid = idx; if (selectedSet.has(ch)) state.selected.add(idx); });
+        if (state.activeChannel === channel) closePlayerModal();
+        analyzeDuplicates(); populateGroupFilter(); applyFilters(); updateScanSummary();
+        showToast(t('toastDeletedChannel', { name: removedName }));
+      }
+
+      function openBulkGroupModal() {
+        if (state.selected.size === 0) return;
+        el.bulkGroupModalSubtitle.textContent = t('bulkGroupModalSubtitle', { count: fmtNum(state.selected.size) });
+        const groups = new Set();
+        for (const ch of state.channels) groups.add(ch.group);
+        const sorted = [...groups].sort((a, b) => a.localeCompare(b, t('locale')));
+        el.bulkGroupExistingSelect.innerHTML = '';
+        const emptyOpt = document.createElement('option');
+        emptyOpt.value = ''; emptyOpt.textContent = t('bulkGroupSelectPlaceholder');
+        el.bulkGroupExistingSelect.appendChild(emptyOpt);
+        for (const g of sorted) {
+          const opt = document.createElement('option'); opt.value = g; opt.textContent = g;
+          el.bulkGroupExistingSelect.appendChild(opt);
+        }
+        el.bulkGroupNewInput.value = '';
+        el.bulkGroupModal.classList.add('open');
+        el.bulkGroupNewInput.focus();
+      }
+
+      function applyBulkGroupChange() {
+        const newName = el.bulkGroupNewInput.value.trim() || el.bulkGroupExistingSelect.value.trim();
+        if (!newName) { showToast(t('errBulkGroupEmpty')); return; }
+        let moved = 0;
+        for (const uid of state.selected) {
+          const ch = state.channels[uid];
+          if (ch) { ch.group = newName; rebuildSearchIndex(ch); moved++; }
+        }
+        state.selected.clear();
+        el.bulkGroupModal.classList.remove('open');
+        populateGroupFilter();
+        applyFilters();
+        showToast(t('toastBulkGroupMoved', { count: fmtNum(moved), group: newName }));
+      }
+
       function bulkCleanNames(mode, customText = '') {
         const targets = state.filtered.length > 0 ? state.filtered : state.channels;
         if (targets.length === 0) return;
-
         let changed = 0;
         for (const ch of targets) {
           let updated = ch.name;
           if (mode === 'prefixes') {
-            updated = updated
-              .replace(/^(?:\[[^\]]{1,10}\]|\([^)]{1,10}\)|\|?[A-Z]{2,5}\|?)\s*[:|\-•>\/]\s*/i, '')
-              .replace(/^(?:\[[^\]]{1,10}\]|\([^)]{1,10}\)|\|[A-Z0-9]{1,10}\|)\s+/i, '');
+            updated = updated.replace(/^(?:\[[^\]]{1,10}\]|\([^)]{1,10}\)|\|?[A-Z]{2,5}\|?)\s*[:|\-•>\/]\s*/i, '')
+                             .replace(/^(?:\[[^\]]{1,10}\]|\([^)]{1,10}\)|\|[A-Z0-9]{1,10}\|)\s+/i, '');
           } else if (mode === 'qualities') {
             updated = updated.replace(/(?:\s*[\[\(]?(?:4K|UHD|FHD|HD|SD|HEVC|H\.?265|H\.?264|1080p|720p|50FPS|60FPS|RAW)[\]\)]?)+$/gi, '');
           } else if (mode === 'custom' && customText) {
             updated = updated.split(customText).join('');
           }
           updated = updated.replace(/\s+/g, ' ').trim();
-          if (updated && updated !== ch.name) {
-            ch.name = updated;
-            rebuildSearchIndex(ch);
-            changed++;
-          }
+          if (updated && updated !== ch.name) { ch.name = updated; rebuildSearchIndex(ch); changed++; }
         }
-
         el.cleanNamesModal.classList.remove('open');
-        if (changed > 0) {
-          analyzeDuplicates();
-          applyFilters();
-          showToast(t('toastNamesCleaned', { count: fmtNum(changed) }));
-        } else {
-          showToast(t('toastNamesUnchanged'));
-        }
+        if (changed > 0) { analyzeDuplicates(); applyFilters(); showToast(t('toastNamesCleaned', { count: fmtNum(changed) })); }
+        else showToast(t('toastNamesUnchanged'));
       }
 
       function reorderChannel(fromUid, toUid) {
@@ -1499,19 +1475,12 @@
         const fromIdx = state.channels.findIndex((c) => c.uid === fromUid);
         const toIdx = state.channels.findIndex((c) => c.uid === toUid);
         if (fromIdx === -1 || toIdx === -1) return;
-
         const selectedSet = new Set();
         for (const uid of state.selected) if (state.channels[uid]) selectedSet.add(state.channels[uid]);
-
         const [moved] = state.channels.splice(fromIdx, 1);
         state.channels.splice(toIdx, 0, moved);
-
         state.selected.clear();
-        state.channels.forEach((ch, idx) => {
-          ch.uid = idx;
-          if (selectedSet.has(ch)) state.selected.add(idx);
-        });
-
+        state.channels.forEach((ch, idx) => { ch.uid = idx; if (selectedSet.has(ch)) state.selected.add(idx); });
         applyFilters();
         showToast(t('toastReordered'));
       }
@@ -1531,12 +1500,10 @@
       function parseXmltv(xmlText) {
         const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
         if (doc.querySelector('parsererror')) throw new Error(t('epgErrParse'));
-
         const nameToIds = new Map();
         const chNodes = doc.getElementsByTagName('channel');
         for (let i = 0; i < chNodes.length; i++) {
-          const chNode = chNodes[i];
-          const id = (chNode.getAttribute('id') || '').trim().toLowerCase();
+          const chNode = chNodes[i], id = (chNode.getAttribute('id') || '').trim().toLowerCase();
           if (!id) continue;
           const names = chNode.getElementsByTagName('display-name');
           for (let j = 0; j < names.length; j++) {
@@ -1547,22 +1514,16 @@
             if (!arr.includes(id)) arr.push(id);
           }
         }
-
-        const programmesById = new Map();
-        const progNodes = doc.getElementsByTagName('programme');
+        const programmesById = new Map(), progNodes = doc.getElementsByTagName('programme');
         let progCount = 0;
         for (let i = 0; i < progNodes.length; i++) {
-          const p = progNodes[i];
-          const chId = (p.getAttribute('channel') || '').trim().toLowerCase();
+          const p = progNodes[i], chId = (p.getAttribute('channel') || '').trim().toLowerCase();
           if (!chId) continue;
-          const startMs = parseXmltvDate(p.getAttribute('start'));
-          const stopMs = parseXmltvDate(p.getAttribute('stop'));
+          const startMs = parseXmltvDate(p.getAttribute('start')), stopMs = parseXmltvDate(p.getAttribute('stop'));
           if (!Number.isFinite(startMs) || !Number.isFinite(stopMs)) continue;
-          const titleEl = p.getElementsByTagName('title')[0];
-          const title = titleEl ? titleEl.textContent.trim() : '';
+          const titleEl = p.getElementsByTagName('title')[0], title = titleEl ? titleEl.textContent.trim() : '';
           if (!title) continue;
-          const descEl = p.getElementsByTagName('desc')[0];
-          const desc = descEl ? descEl.textContent.trim() : '';
+          const descEl = p.getElementsByTagName('desc')[0], desc = descEl ? descEl.textContent.trim() : '';
           if (!programmesById.has(chId)) programmesById.set(chId, []);
           programmesById.get(chId).push({ startMs, stopMs, title, desc });
           progCount++;
@@ -1576,19 +1537,12 @@
         if (!state.epg.loaded) return null;
         const candidates = [];
         if (channel.tvgId) candidates.push(channel.tvgId.trim().toLowerCase());
-        if (channel.tvgName) {
-          const mapped = state.epg.nameToIds.get(normalizeName(channel.tvgName));
-          if (mapped) candidates.push(...mapped);
-        }
-        const mappedName = state.epg.nameToIds.get(channel.normName);
-        if (mappedName) candidates.push(...mappedName);
-
+        if (channel.tvgName) { const m = state.epg.nameToIds.get(normalizeName(channel.tvgName)); if (m) candidates.push(...m); }
+        const mName = state.epg.nameToIds.get(channel.normName);
+        if (mName) candidates.push(...mName);
         let list = null;
-        for (const id of candidates) {
-          if (state.epg.programmesById.has(id)) { list = state.epg.programmesById.get(id); break; }
-        }
+        for (const id of candidates) if (state.epg.programmesById.has(id)) { list = state.epg.programmesById.get(id); break; }
         if (!list || list.length === 0) return { current: null, next: null };
-
         const now = Date.now();
         let current = null, next = null;
         for (let i = 0; i < list.length; i++) {
@@ -1600,8 +1554,8 @@
       }
 
       function formatTimeRange(startMs, stopMs) {
-        const loc = t('locale'), opts = { hour: '2-digit', minute: '2-digit' };
-        return `${new Date(startMs).toLocaleTimeString(loc, opts)} – ${new Date(stopMs).toLocaleTimeString(loc, opts)}`;
+        const opts = { hour: '2-digit', minute: '2-digit' };
+        return `${new Date(startMs).toLocaleTimeString(t('locale'), opts)} – ${new Date(stopMs).toLocaleTimeString(t('locale'), opts)}`;
       }
 
       function updateEpgUiStatus() {
@@ -1611,16 +1565,13 @@
           el.epgStatusLine.textContent = t('epgLoadedStatus', { progs: fmtNum(state.epg.progCount), channels: fmtNum(state.epg.channelCount), source: state.epg.source });
           el.btnClearEpg.disabled = false;
         } else {
-          el.btnOpenEpg.classList.remove('btn-success');
-          el.epgBtnLabel.textContent = 'EPG';
-          el.btnClearEpg.disabled = true;
+          el.btnOpenEpg.classList.remove('btn-success'); el.epgBtnLabel.textContent = 'EPG'; el.btnClearEpg.disabled = true;
           el.epgStatusLine.textContent = state.epg.detectedUrl ? t('epgDetectedHint') : t('epgNoneLoaded');
         }
       }
 
       function applyParsedEpg(parsed, source) {
-        state.epg.loaded = true; state.epg.source = source;
-        state.epg.channelCount = parsed.channelCount; state.epg.progCount = parsed.progCount;
+        state.epg.loaded = true; state.epg.source = source; state.epg.channelCount = parsed.channelCount; state.epg.progCount = parsed.progCount;
         state.epg.programmesById = parsed.programmesById; state.epg.nameToIds = parsed.nameToIds;
         updateEpgUiStatus(); renderChannelPage();
         if (state.activeChannel) updatePlayerEpgBar(state.activeChannel);
@@ -1629,8 +1580,7 @@
 
       async function readEpgBuffer(arrayBuffer, filename) {
         const bytes = new Uint8Array(arrayBuffer);
-        const isGzip = filename.toLowerCase().endsWith('.gz') || (bytes.length >= 2 && bytes[0] === 0x1f && bytes[1] === 0x8b);
-        if (isGzip) {
+        if (filename.toLowerCase().endsWith('.gz') || (bytes.length >= 2 && bytes[0] === 0x1f && bytes[1] === 0x8b)) {
           if (typeof DecompressionStream === 'undefined') throw new Error(t('epgErrGzip'));
           const stream = new Blob([arrayBuffer]).stream().pipeThrough(new DecompressionStream('gzip'));
           return await new Response(stream).text();
@@ -1643,23 +1593,19 @@
         const name = file.name || 'epg.xml';
         if (!/\.(xml|gz|xmltv)$/i.test(name)) { el.epgStatusLine.textContent = t('epgErrUnsupported'); return; }
         el.epgStatusLine.textContent = t('epgLoading');
-        try {
-          const xmlText = await readEpgBuffer(await file.arrayBuffer(), name);
-          applyParsedEpg(parseXmltv(xmlText), name);
-        } catch (err) { el.epgStatusLine.textContent = err.message || t('epgErrParse'); }
+        try { applyParsedEpg(parseXmltv(await readEpgBuffer(await file.arrayBuffer(), name)), name); }
+        catch (err) { el.epgStatusLine.textContent = err.message || t('epgErrParse'); }
       }
 
       async function handleLoadEpgUrl(silent = false) {
         const url = el.epgUrlInput.value.trim();
         if (!url) return;
         try { new URL(url); } catch { if (!silent) el.epgStatusLine.textContent = t('errUrlMalformed'); return; }
-        el.btnLoadEpgUrl.disabled = true; el.btnLoadEpgUrl.textContent = t('loadingBtn');
-        el.epgStatusLine.textContent = t('epgLoading');
+        el.btnLoadEpgUrl.disabled = true; el.btnLoadEpgUrl.textContent = t('loadingBtn'); el.epgStatusLine.textContent = t('epgLoading');
         try {
           const res = await fetch(url, { mode: 'cors' });
           if (!res.ok) throw new Error(t('errUrlHttp', { status: res.status, statusText: res.statusText || t('errorWord') }));
-          const xmlText = await readEpgBuffer(await res.arrayBuffer(), url);
-          applyParsedEpg(parseXmltv(xmlText), url);
+          applyParsedEpg(parseXmltv(await readEpgBuffer(await res.arrayBuffer(), url)), url);
         } catch (err) {
           if (!silent) el.epgStatusLine.textContent = err instanceof TypeError ? t('epgErrCors') : (err.message || t('epgErrParse'));
           else updateEpgUiStatus();
@@ -1674,9 +1620,7 @@
         showToast(t('epgClearedToast'));
       }
 
-      function escapeHtml(str) {
-        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-      }
+      function escapeHtml(str) { return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
       function updatePlayerEpgBar(channel) {
         if (!state.epg.loaded || !channel) { el.playerEpgBar.classList.remove('show'); return; }
@@ -1690,8 +1634,7 @@
         if (info.current) {
           const range = formatTimeRange(info.current.startMs, info.current.stopMs);
           el.playerEpgNow.innerHTML = `<strong>${t('epgNowPrefix')}</strong> ${escapeHtml(info.current.title)} <span style="color:var(--text-muted);">(${range})</span>`;
-          el.playerEpgDesc.textContent = info.current.desc || '';
-          el.playerEpgProgressTrack.style.display = 'block';
+          el.playerEpgDesc.textContent = info.current.desc || ''; el.playerEpgProgressTrack.style.display = 'block';
           const pct = Math.min(100, Math.max(0, ((Date.now() - info.current.startMs) / (info.current.stopMs - info.current.startMs)) * 100));
           el.playerEpgProgressFill.style.width = `${pct.toFixed(1)}%`;
         } else {
@@ -1713,12 +1656,9 @@
         let anyDupCount = 0, bothKept = 0;
         const seenBothUrls = new Set(), seenBothNames = new Set();
         for (const ch of state.channels) {
-          ch.isDupUrl = urlCounts.get(ch.normUrl) > 1;
-          ch.isDupName = nameCounts.get(ch.normName) > 1;
+          ch.isDupUrl = urlCounts.get(ch.normUrl) > 1; ch.isDupName = nameCounts.get(ch.normName) > 1;
           if (ch.isDupUrl || ch.isDupName) anyDupCount++;
-          if (!seenBothUrls.has(ch.normUrl) && !seenBothNames.has(ch.normName)) {
-            seenBothUrls.add(ch.normUrl); seenBothNames.add(ch.normName); bothKept++;
-          }
+          if (!seenBothUrls.has(ch.normUrl) && !seenBothNames.has(ch.normName)) { seenBothUrls.add(ch.normUrl); seenBothNames.add(ch.normName); bothKept++; }
         }
         const total = state.channels.length;
         state.dupStats = { anyDupCount, urlRemovable: total - urlCounts.size, nameRemovable: total - nameCounts.size, bothRemovable: total - bothKept };
@@ -1758,9 +1698,7 @@
           const prioritized = [...state.channels].sort((a, b) => channelQualityScore(b) - channelQualityScore(a));
           const seenUrls = new Set(), seenNames = new Set(), winners = new Set();
           for (const ch of prioritized) {
-            if (!seenUrls.has(ch.normUrl) && !seenNames.has(ch.normName)) {
-              seenUrls.add(ch.normUrl); seenNames.add(ch.normName); winners.add(ch);
-            }
+            if (!seenUrls.has(ch.normUrl) && !seenNames.has(ch.normName)) { seenUrls.add(ch.normUrl); seenNames.add(ch.normName); winners.add(ch); }
           }
           kept = state.channels.filter((ch) => winners.has(ch));
         }
@@ -1793,21 +1731,13 @@
 
       async function checkSingleChannel(channel) {
         const prevStatus = channel.linkStatus, prevKey = channel.linkDetailKey, prevRaw = channel.linkDetailRaw;
-        if (!/^https?:\/\//i.test(channel.url)) {
-          channel.linkStatus = 'blocked'; channel.linkDetailKey = 'detailNonHttp'; channel.linkDetailRaw = '';
-          updateChannelCardStatus(channel); updateScanSummary(); return;
-        }
-        if (window.location.protocol === 'https:' && channel.url.startsWith('http://')) {
-          channel.linkStatus = 'blocked'; channel.linkDetailKey = 'detailMixedContent'; channel.linkDetailRaw = '';
-          updateChannelCardStatus(channel); updateScanSummary(); return;
-        }
-        channel.linkStatus = 'testing'; channel.linkDetailKey = ''; channel.linkDetailRaw = '';
-        updateChannelCardStatus(channel);
+        if (!/^https?:\/\//i.test(channel.url)) { channel.linkStatus = 'blocked'; channel.linkDetailKey = 'detailNonHttp'; channel.linkDetailRaw = ''; updateChannelCardStatus(channel); updateScanSummary(); return; }
+        if (window.location.protocol === 'https:' && channel.url.startsWith('http://')) { channel.linkStatus = 'blocked'; channel.linkDetailKey = 'detailMixedContent'; channel.linkDetailRaw = ''; updateChannelCardStatus(channel); updateScanSummary(); return; }
+        channel.linkStatus = 'testing'; channel.linkDetailKey = ''; channel.linkDetailRaw = ''; updateChannelCardStatus(channel);
         const startedAt = performance.now();
 
         async function runFetch(method) {
-          const controller = new AbortController();
-          state.scan.activeControllers.add(controller);
+          const controller = new AbortController(); state.scan.activeControllers.add(controller);
           let timedOut = false;
           const timer = setTimeout(() => { timedOut = true; controller.abort(); }, SCAN_TIMEOUT_MS);
           try {
@@ -1825,28 +1755,16 @@
         try {
           let outcome = await runFetch('HEAD');
           if (!outcome.userAborted && !outcome.timedOut && outcome.res && (outcome.res.status === 405 || outcome.res.status === 501)) outcome = await runFetch('GET');
-          if (outcome.userAborted || state.scan.stopRequested) {
-            channel.linkStatus = prevStatus; channel.linkDetailKey = prevKey; channel.linkDetailRaw = prevRaw;
-            updateChannelCardStatus(channel); return;
-          }
-          if (outcome.timedOut) {
-            channel.linkStatus = 'dead'; channel.linkDetailKey = 'detailTimeout'; channel.linkDetailRaw = '';
-          } else if (outcome.res) {
+          if (outcome.userAborted || state.scan.stopRequested) { channel.linkStatus = prevStatus; channel.linkDetailKey = prevKey; channel.linkDetailRaw = prevRaw; updateChannelCardStatus(channel); return; }
+          if (outcome.timedOut) { channel.linkStatus = 'dead'; channel.linkDetailKey = 'detailTimeout'; channel.linkDetailRaw = ''; }
+          else if (outcome.res) {
             const status = outcome.res.status, ms = Math.round(performance.now() - startedAt);
-            if (outcome.res.ok || status === 206) {
-              channel.linkStatus = 'active'; channel.linkDetailKey = ''; channel.linkDetailRaw = `${status} · ${ms}ms`;
-              scheduleLiveActiveFilterRefresh();
-            } else if (status === 404 || status === 410 || status >= 500) {
-              channel.linkStatus = 'dead'; channel.linkDetailKey = ''; channel.linkDetailRaw = `HTTP ${status}`;
-            } else {
-              channel.linkStatus = 'blocked'; channel.linkDetailKey = ''; channel.linkDetailRaw = `HTTP ${status}`;
-            }
+            if (outcome.res.ok || status === 206) { channel.linkStatus = 'active'; channel.linkDetailKey = ''; channel.linkDetailRaw = `${status} · ${ms}ms`; scheduleLiveActiveFilterRefresh(); }
+            else if (status === 404 || status === 410 || status >= 500) { channel.linkStatus = 'dead'; channel.linkDetailKey = ''; channel.linkDetailRaw = `HTTP ${status}`; }
+            else { channel.linkStatus = 'blocked'; channel.linkDetailKey = ''; channel.linkDetailRaw = `HTTP ${status}`; }
           }
         } catch {
-          if (state.scan.stopRequested) {
-            channel.linkStatus = prevStatus; channel.linkDetailKey = prevKey; channel.linkDetailRaw = prevRaw;
-            updateChannelCardStatus(channel); return;
-          }
+          if (state.scan.stopRequested) { channel.linkStatus = prevStatus; channel.linkDetailKey = prevKey; channel.linkDetailRaw = prevRaw; updateChannelCardStatus(channel); return; }
           channel.linkStatus = 'blocked'; channel.linkDetailKey = 'detailCorsNetwork'; channel.linkDetailRaw = '';
         }
         updateChannelCardStatus(channel); updateScanSummary();
@@ -1862,19 +1780,15 @@
         if (existing) existing.remove();
         if (channel.linkStatus) {
           const clsMap = { testing: 'tag-status-wait', active: 'tag-status-active', dead: 'tag-status-dead', blocked: 'tag-status-blocked' };
-          const badge = document.createElement('span');
-          badge.className = `tag tag-ping-status ${clsMap[channel.linkStatus] || ''}`;
-          badge.textContent = getStatusDisplayText(channel); badge.title = badge.textContent;
-          tags.appendChild(badge);
+          const badge = document.createElement('span'); badge.className = `tag tag-ping-status ${clsMap[channel.linkStatus] || ''}`;
+          badge.textContent = getStatusDisplayText(channel); badge.title = badge.textContent; tags.appendChild(badge);
         }
       }
 
       function getScanCounts() {
         let active = 0, dead = 0, blocked = 0;
         for (const ch of state.channels) {
-          if (ch.linkStatus === 'active') active++;
-          else if (ch.linkStatus === 'dead') dead++;
-          else if (ch.linkStatus === 'blocked') blocked++;
+          if (ch.linkStatus === 'active') active++; else if (ch.linkStatus === 'dead') dead++; else if (ch.linkStatus === 'blocked') blocked++;
         }
         return { active, dead, blocked };
       }
@@ -1911,22 +1825,18 @@
         if (state.scan.running || targets.length === 0) return;
         state.scan.running = true; state.scan.stopRequested = false; state.scan.total = targets.length; state.scan.done = 0;
         el.btnTestStreams.style.display = 'none'; el.btnStopTest.style.display = 'inline-flex';
-        el.btnRemoveDead.disabled = true; el.btnOpenDedup.disabled = true; el.btnOpenCleanNames.disabled = true; el.btnResetList.disabled = true; el.btnClearPlaylist.disabled = true;
+        el.btnRemoveDead.disabled = true; el.btnOpenDedup.disabled = true; el.btnOpenCleanNames.disabled = true; el.btnOpenBulkGroup.disabled = true; el.btnResetList.disabled = true; el.btnClearPlaylist.disabled = true;
         updateScanSummary();
-
         let cursor = 0;
         async function worker() {
           while (!state.scan.stopRequested && cursor < targets.length) {
-            const ch = targets[cursor++];
-            await checkSingleChannel(ch);
+            const ch = targets[cursor++]; await checkSingleChannel(ch);
             if (!state.scan.stopRequested) { state.scan.done++; updateScanSummary(); }
           }
         }
         await Promise.all(Array.from({ length: Math.min(SCAN_CONCURRENCY, targets.length) }, worker));
-
         if (liveActiveRefreshTimer) { clearTimeout(liveActiveRefreshTimer); liveActiveRefreshTimer = null; }
-        state.scan.running = false;
-        el.btnTestStreams.style.display = 'inline-flex'; el.btnStopTest.style.display = 'none';
+        state.scan.running = false; el.btnTestStreams.style.display = 'inline-flex'; el.btnStopTest.style.display = 'none';
         if (state.activeOnly) applyFilters(); else updateStats();
         updateScanSummary();
         const { active, dead, blocked } = getScanCounts();
@@ -1966,9 +1876,6 @@
         showToast(t('toastResetDone', { count: fmtNum(state.channels.length) }));
       }
 
-      // ============================
-      // Envoyer vers lecteur (.m3u) via Blob
-      // ============================
       function sanitizeChannelFilename(name) {
         const cleaned = String(name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
         return `${cleaned || 'chaine'}.m3u`;
@@ -1980,15 +1887,14 @@
         const blob = new Blob([content], { type: 'audio/x-mpegurl' });
         const blobUrl = URL.createObjectURL(blob);
         const filename = sanitizeChannelFilename(cleanChannelName);
-        const a = document.createElement('a');
-        a.href = blobUrl; a.download = filename; a.style.display = 'none';
+        const a = document.createElement('a'); a.href = blobUrl; a.download = filename; a.style.display = 'none';
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
         showToast(t('toastSingleM3uDownloaded', { filename }));
       }
 
       // ============================
-      // Loading & Filtering
+      // Loading & Multi-File Merging
       // ============================
       function loadPlaylistText(text, sourceInfo) {
         if (state.scan.running) stopBatchStreamTest();
@@ -1998,31 +1904,22 @@
           state.channels = channels;
           state.selected.clear(); state.search = ''; state.group = '';
           state.favoritesOnly = false; state.activeOnly = false; state.duplicatesOnly = false; state.page = 1;
-          state.sourceKey = sourceInfo.key || ''; state.sourceCustom = sourceInfo.custom || '';
+          state.sourceKey = sourceInfo.key || ''; state.sourceCustom = sourceInfo.custom || ''; state.sourceParams = sourceInfo.params || {};
           state.scan.total = 0; state.scan.done = 0; state.scan.stopRequested = false;
 
           el.searchInput.value = ''; el.btnFavoritesOnly.classList.remove('active'); el.btnActiveOnly.classList.remove('active'); el.btnDuplicatesOnly.classList.remove('active');
           updateSourceLabel();
 
           if (detectedEpgUrl) {
-            state.epg.detectedUrl = detectedEpgUrl;
-            el.epgUrlInput.value = detectedEpgUrl;
-            updateEpgUiStatus();
+            state.epg.detectedUrl = detectedEpgUrl; el.epgUrlInput.value = detectedEpgUrl; updateEpgUiStatus();
             if (!state.epg.loaded) handleLoadEpgUrl(true);
-          } else {
-            state.epg.detectedUrl = '';
-            updateEpgUiStatus();
-          }
+          } else { state.epg.detectedUrl = ''; updateEpgUiStatus(); }
 
           analyzeDuplicates(); populateGroupFilter(); applyFilters(); updateScanSummary();
 
-          const displaySource = state.sourceKey ? t(state.sourceKey) : state.sourceCustom;
-          if (!hasExtM3UHeader) {
-            showAlert(t('warnNoHeader', { count: fmtNum(channels.length), source: displaySource }), 'warning');
-          } else {
-            hideAlert();
-            showToast(t('toastLoaded', { count: fmtNum(channels.length) }));
-          }
+          const displaySource = state.sourceKey ? t(state.sourceKey, state.sourceParams) : state.sourceCustom;
+          if (!hasExtM3UHeader) showAlert(t('warnNoHeader', { count: fmtNum(channels.length), source: displaySource }), 'warning');
+          else { hideAlert(); showToast(t('toastLoaded', { count: fmtNum(channels.length) })); }
         } catch (err) { showAlert(err.message || t('errParseGeneric')); }
       }
 
@@ -2036,16 +1933,73 @@
         });
       }
 
-      async function handleFile(file) {
-        if (!file) return;
-        try {
-          const ext = file.name.includes('.') ? file.name.split('.').pop().toLowerCase() : '';
-          if (ext && !['m3u', 'm3u8', 'txt'].includes(ext)) { showAlert(t('errUnsupportedFormat', { ext })); return; }
-          const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-          showAlert(t('infoReadingFile', { name: file.name, size: sizeMB }), 'info');
-          await new Promise((r) => setTimeout(r, 30));
-          loadPlaylistText(await readFileAsText(file), { custom: file.name });
-        } catch (err) { showAlert(t('errFileReadNamed', { name: file.name, msg: err.message || err })); }
+      async function handleFiles(fileList, appendToExisting = false) {
+        const files = Array.from(fileList || []);
+        if (files.length === 0) return;
+
+        if (files.length === 1 && !appendToExisting) {
+          const file = files[0];
+          try {
+            const ext = file.name.includes('.') ? file.name.split('.').pop().toLowerCase() : '';
+            if (ext && !['m3u', 'm3u8', 'txt'].includes(ext)) { showAlert(t('errUnsupportedFormat', { ext })); return; }
+            showAlert(t('infoReadingFile', { name: file.name, size: (file.size / (1024 * 1024)).toFixed(2) }), 'info');
+            await new Promise((r) => setTimeout(r, 30));
+            loadPlaylistText(await readFileAsText(file), { custom: file.name });
+          } catch (err) { showAlert(t('errFileReadNamed', { name: file.name, msg: err.message || err })); }
+          return;
+        }
+
+        if (state.scan.running) stopBatchStreamTest();
+        let addedCount = 0, loadedFiles = 0, lastDetectedEpg = '';
+        const baseList = appendToExisting ? [...state.channels] : [];
+        const errors = [];
+
+        for (const file of files) {
+          try {
+            const ext = file.name.includes('.') ? file.name.split('.').pop().toLowerCase() : '';
+            if (ext && !['m3u', 'm3u8', 'txt'].includes(ext)) {
+              errors.push(t('errUnsupportedFormat', { ext }));
+              continue;
+            }
+            showAlert(t('infoReadingFile', { name: file.name, size: (file.size / (1024 * 1024)).toFixed(2) }), 'info');
+            await new Promise((r) => setTimeout(r, 20));
+            const text = await readFileAsText(file);
+            const { channels, detectedEpgUrl } = parseM3U(text);
+            if (detectedEpgUrl && !lastDetectedEpg) lastDetectedEpg = detectedEpgUrl;
+            for (const ch of channels) { ch.uid = baseList.length; baseList.push(ch); addedCount++; }
+            loadedFiles++;
+          } catch (err) {
+            errors.push(t('errFileReadNamed', { name: file.name, msg: err.message || err }));
+          }
+        }
+
+        if (loadedFiles === 0) { if (errors.length) showAlert(errors[0]); return; }
+
+        state.channels = baseList;
+        if (appendToExisting) {
+          state.originalChannels = baseList.map((c) => ({ ...c }));
+          state.sourceKey = 'mergedSourceName';
+          state.sourceParams = { count: fmtNum(loadedFiles + (state.originalChannels.length > addedCount ? 1 : 0)) };
+          state.sourceCustom = '';
+        } else {
+          state.originalChannels = baseList.map((c) => ({ ...c }));
+          state.selected.clear(); state.search = ''; state.group = '';
+          state.favoritesOnly = false; state.activeOnly = false; state.duplicatesOnly = false; state.page = 1;
+          el.searchInput.value = ''; el.btnFavoritesOnly.classList.remove('active'); el.btnActiveOnly.classList.remove('active'); el.btnDuplicatesOnly.classList.remove('active');
+          state.sourceKey = 'mergedSourceName';
+          state.sourceParams = { count: fmtNum(loadedFiles) };
+          state.sourceCustom = '';
+        }
+
+        updateSourceLabel();
+        if (lastDetectedEpg && !state.epg.loaded) {
+          state.epg.detectedUrl = lastDetectedEpg; el.epgUrlInput.value = lastDetectedEpg; updateEpgUiStatus();
+          handleLoadEpgUrl(true);
+        }
+
+        analyzeDuplicates(); populateGroupFilter(); applyFilters(); updateScanSummary();
+        if (errors.length) showAlert(errors[0], 'warning'); else hideAlert();
+        showToast(t('toastMergedFiles', { added: fmtNum(addedCount), files: fmtNum(loadedFiles), total: fmtNum(state.channels.length) }));
       }
 
       async function handleLoadUrl() {
@@ -2088,12 +2042,12 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         defaultOpt.textContent = sortedGroups.length > 0 ? `${t('allCategories')} (${fmtNum(sortedGroups.length)})` : t('allCategories');
         fragment.appendChild(defaultOpt);
         for (const [group, count] of sortedGroups) {
-          const opt = document.createElement('option');
-          opt.value = group; opt.textContent = `${group} (${fmtNum(count)})`;
+          const opt = document.createElement('option'); opt.value = group; opt.textContent = `${group} (${fmtNum(count)})`;
           fragment.appendChild(opt);
         }
         el.groupSelect.innerHTML = ''; el.groupSelect.appendChild(fragment);
         if (currentGroup && counts.has(currentGroup)) el.groupSelect.value = currentGroup;
+        else state.group = '';
       }
 
       function filterChannelsList({ ignoreActiveOnly = false } = {}) {
@@ -2135,6 +2089,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         el.btnDuplicatesOnly.disabled = anyDups === 0 && !state.duplicatesOnly;
         el.btnOpenDedup.disabled = state.dupStats.bothRemovable === 0 || state.scan.running;
         el.btnOpenCleanNames.disabled = total === 0 || state.scan.running;
+        el.btnOpenBulkGroup.disabled = selected === 0 || state.scan.running;
       }
 
       function getInitials(name) {
@@ -2145,16 +2100,13 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       function buildLogoElement(ch, targetBox) {
         targetBox.innerHTML = '';
         const fallbackSpan = document.createElement('span');
-        fallbackSpan.className = 'logo-fallback';
-        fallbackSpan.textContent = getInitials(ch.name);
+        fallbackSpan.className = 'logo-fallback'; fallbackSpan.textContent = getInitials(ch.name);
         if (ch.logo) {
           const img = document.createElement('img');
           img.src = ch.logo; img.alt = ''; img.loading = 'lazy'; img.decoding = 'async'; img.referrerPolicy = 'no-referrer';
           img.onerror = () => { img.remove(); targetBox.appendChild(fallbackSpan); };
           targetBox.appendChild(img);
-        } else {
-          targetBox.appendChild(fallbackSpan);
-        }
+        } else targetBox.appendChild(fallbackSpan);
       }
 
       function renderChannelPage() {
@@ -2188,28 +2140,18 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
           const isFav = state.favorites.has(getFavoriteKey(ch)), isSelected = state.selected.has(ch.uid);
           const card = document.createElement('article');
           card.className = `channel-card${isSelected ? ' selected' : ''}${ch.linkStatus === 'dead' ? ' status-dead' : ''}`;
-          card.dataset.uid = ch.uid;
-          card.draggable = true;
+          card.dataset.uid = ch.uid; card.draggable = true;
 
           const head = document.createElement('div'); head.className = 'channel-head';
-          const dragHandle = document.createElement('span');
-          dragHandle.className = 'drag-handle';
-          dragHandle.title = t('dragHandleTitle');
-          dragHandle.textContent = '⋮⋮';
-
+          const dragHandle = document.createElement('span'); dragHandle.className = 'drag-handle'; dragHandle.title = t('dragHandleTitle'); dragHandle.textContent = '⋮⋮';
           const cbWrap = document.createElement('div'); cbWrap.className = 'checkbox-wrap';
           const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'checkbox'; cb.checked = isSelected;
           cb.setAttribute('aria-label', t('selectChannelAria', { name: ch.name }));
           cbWrap.appendChild(cb);
 
-          const logoBox = document.createElement('div'); logoBox.className = 'logo-box';
-          buildLogoElement(ch, logoBox);
-
+          const logoBox = document.createElement('div'); logoBox.className = 'logo-box'; buildLogoElement(ch, logoBox);
           const info = document.createElement('div'); info.className = 'channel-info';
-          const title = document.createElement('div'); title.className = 'channel-title';
-          title.title = `${ch.name} (${t('renameHintTitle')})`;
-          title.textContent = ch.name;
-
+          const title = document.createElement('div'); title.className = 'channel-title'; title.title = `${ch.name} (${t('renameHintTitle')})`; title.textContent = ch.name;
           const tags = document.createElement('div'); tags.className = 'channel-tags';
           const groupTag = document.createElement('span'); groupTag.className = 'tag tag-group'; groupTag.textContent = ch.group; tags.appendChild(groupTag);
           if (ch.isDupUrl || ch.isDupName) {
@@ -2225,18 +2167,25 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
           }
           info.append(title, tags);
 
+          const headBtns = document.createElement('div'); headBtns.className = 'card-head-btns';
           const favBtn = document.createElement('button');
           favBtn.className = `fav-btn${isFav ? ' active' : ''}`; favBtn.type = 'button';
           favBtn.title = isFav ? t('removeFavTitle') : t('addFavTitle'); favBtn.setAttribute('aria-label', favBtn.title);
-          favBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-          head.append(dragHandle, cbWrap, logoBox, info, favBtn);
+          favBtn.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+
+          const delBtn = document.createElement('button');
+          delBtn.className = 'del-btn'; delBtn.type = 'button';
+          delBtn.title = t('deleteChannelTitle'); delBtn.setAttribute('aria-label', t('deleteChannelTitle'));
+          delBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+
+          headBtns.append(favBtn, delBtn);
+          head.append(dragHandle, cbWrap, logoBox, info, headBtns);
           card.appendChild(head);
 
           if (state.epg.loaded) {
             const epg = getChannelEpgNowNext(ch);
             if (epg && epg.current) {
-              const epgLine = document.createElement('div');
-              epgLine.className = 'channel-epg-line';
+              const epgLine = document.createElement('div'); epgLine.className = 'channel-epg-line';
               const range = formatTimeRange(epg.current.startMs, epg.current.stopMs);
               epgLine.title = `${t('epgNowPrefix')} ${epg.current.title} (${range})`;
               epgLine.innerHTML = `<strong>${t('epgNowPrefix')}</strong> ${escapeHtml(epg.current.title)} <span style="color:var(--text-muted)">(${range})</span>`;
@@ -2265,8 +2214,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       }
 
       function toggleChannelFavorite(channel) {
-        const key = getFavoriteKey(channel);
-        const added = !state.favorites.has(key);
+        const key = getFavoriteKey(channel), added = !state.favorites.has(key);
         if (added) state.favorites.add(key); else state.favorites.delete(key);
         saveFavorites();
         const card = el.channelsContainer.querySelector(`.channel-card[data-uid="${channel.uid}"]`);
@@ -2288,88 +2236,55 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         if (!titleEl) return;
         const card = titleEl.closest('.channel-card');
         if (!card) return;
-        const uid = Number(card.dataset.uid);
-        const channel = state.channels[uid];
+        const channel = state.channels[Number(card.dataset.uid)];
         if (!channel) return;
-
         card.draggable = false;
         const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'inline-rename-input';
-        input.value = channel.name;
-
+        input.type = 'text'; input.className = 'inline-rename-input'; input.value = channel.name;
         let finished = false;
         const finish = (save) => {
-          if (finished) return;
-          finished = true;
-          card.draggable = true;
-          if (save && renameChannel(channel, input.value)) {
-            renderChannelPage();
-          } else {
-            input.replaceWith(titleEl);
-          }
+          if (finished) return; finished = true; card.draggable = true;
+          if (save && renameChannel(channel, input.value)) renderChannelPage();
+          else input.replaceWith(titleEl);
         };
-
         input.addEventListener('keydown', (ev) => {
           if (ev.key === 'Enter') { ev.preventDefault(); finish(true); }
           else if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
         });
         input.addEventListener('blur', () => finish(true));
-
-        titleEl.replaceWith(input);
-        input.focus();
-        input.select();
+        titleEl.replaceWith(input); input.focus(); input.select();
       });
 
       // Drag & Drop Reorder
       el.channelsContainer.addEventListener('dragstart', (e) => {
         const card = e.target.closest('.channel-card');
         if (!card || e.target.closest('input, button, select, a')) { e.preventDefault(); return; }
-        state.dragSourceUid = Number(card.dataset.uid);
-        card.classList.add('dragging');
-        if (e.dataTransfer) {
-          e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData('text/plain', String(state.dragSourceUid));
-        }
+        state.dragSourceUid = Number(card.dataset.uid); card.classList.add('dragging');
+        if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(state.dragSourceUid)); }
       });
-
       el.channelsContainer.addEventListener('dragover', (e) => {
         if (state.dragSourceUid === null) return;
         const card = e.target.closest('.channel-card');
         if (!card || Number(card.dataset.uid) === state.dragSourceUid) return;
-        e.preventDefault();
-        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-        card.classList.add('drag-over');
+        e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'; card.classList.add('drag-over');
       });
-
-      el.channelsContainer.addEventListener('dragleave', (e) => {
-        const card = e.target.closest('.channel-card');
-        if (card) card.classList.remove('drag-over');
-      });
-
+      el.channelsContainer.addEventListener('dragleave', (e) => { const card = e.target.closest('.channel-card'); if (card) card.classList.remove('drag-over'); });
       el.channelsContainer.addEventListener('drop', (e) => {
         const card = e.target.closest('.channel-card');
         if (!card || state.dragSourceUid === null) return;
-        e.preventDefault();
-        card.classList.remove('drag-over');
-        const targetUid = Number(card.dataset.uid);
-        const sourceUid = state.dragSourceUid;
-        state.dragSourceUid = null;
+        e.preventDefault(); card.classList.remove('drag-over');
+        const targetUid = Number(card.dataset.uid), sourceUid = state.dragSourceUid; state.dragSourceUid = null;
         reorderChannel(sourceUid, targetUid);
       });
-
       el.channelsContainer.addEventListener('dragend', () => {
         state.dragSourceUid = null;
-        el.channelsContainer.querySelectorAll('.channel-card.dragging, .channel-card.drag-over').forEach((n) => {
-          n.classList.remove('dragging', 'drag-over');
-        });
+        el.channelsContainer.querySelectorAll('.channel-card.dragging, .channel-card.drag-over').forEach((n) => n.classList.remove('dragging', 'drag-over'));
       });
 
       el.channelsContainer.addEventListener('click', async (e) => {
         const card = e.target.closest('.channel-card');
         if (!card) return;
-        const uid = Number(card.dataset.uid);
-        const channel = state.channels[uid];
+        const uid = Number(card.dataset.uid), channel = state.channels[uid];
         if (!channel) return;
         if (e.target.closest('.checkbox')) {
           if (state.selected.has(uid)) { state.selected.delete(uid); card.classList.remove('selected'); }
@@ -2377,6 +2292,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
           updateStats(); return;
         }
         if (e.target.closest('.fav-btn')) { toggleChannelFavorite(channel); return; }
+        if (e.target.closest('.del-btn')) { deleteSingleChannel(channel); return; }
         if (e.target.closest('.test-btn')) { await checkSingleChannel(channel); if (state.activeOnly) applyFilters(); return; }
         if (e.target.closest('.copy-btn')) { await copyUrlToClipboard(channel.url, e.target.closest('.copy-btn')); return; }
         if (e.target.closest('.send-player-btn')) { sendChannelToPlayer(channel); return; }
@@ -2429,9 +2345,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       // Advanced HLS Preview Player
       // ============================
       function setPlayerStatus(show, title = '', message = '') {
-        el.playerStatus.classList.toggle('show', show);
-        el.playerStatusTitle.textContent = title;
-        el.playerStatusMessage.textContent = message;
+        el.playerStatus.classList.toggle('show', show); el.playerStatusTitle.textContent = title; el.playerStatusMessage.textContent = message;
       }
 
       function resetPlayerTelemetry() {
@@ -2444,8 +2358,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
 
       function destroyHls() {
         if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-        el.videoPlayer.pause(); el.videoPlayer.removeAttribute('src'); el.videoPlayer.load();
-        resetPlayerTelemetry();
+        el.videoPlayer.pause(); el.videoPlayer.removeAttribute('src'); el.videoPlayer.load(); resetPlayerTelemetry();
       }
 
       function updatePlayerFavButton(channel) {
@@ -2456,14 +2369,11 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       }
 
       function updatePlayerHeader(channel) {
-        buildLogoElement(channel, el.modalLogoBox);
-        el.modalChannelTitle.textContent = channel.name;
+        buildLogoElement(channel, el.modalLogoBox); el.modalChannelTitle.textContent = channel.name;
         const idx = state.filtered.findIndex((c) => c.uid === channel.uid);
         const posLabel = idx !== -1 ? ` • ${fmtNum(idx + 1)} / ${fmtNum(state.filtered.length)}` : '';
-        el.modalChannelMeta.textContent = `${channel.group}${posLabel} • ${channel.url}`;
-        el.modalChannelMeta.title = channel.url;
-        el.btnModalPrev.disabled = idx <= 0;
-        el.btnModalNext.disabled = idx === -1 || idx >= state.filtered.length - 1;
+        el.modalChannelMeta.textContent = `${channel.group}${posLabel} • ${channel.url}`; el.modalChannelMeta.title = channel.url;
+        el.btnModalPrev.disabled = idx <= 0; el.btnModalNext.disabled = idx === -1 || idx >= state.filtered.length - 1;
         updatePlayerFavButton(channel);
       }
 
@@ -2485,8 +2395,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
           hls.levels.forEach((lvl, idx) => {
             const opt = document.createElement('option'); opt.value = String(idx);
             const res = lvl.height ? `${lvl.height}p` : `${t('qualityLabel')} ${idx + 1}`, br = formatBitrate(lvl.bitrate);
-            opt.textContent = br ? `${res} (${br})` : res;
-            el.qualitySelect.appendChild(opt);
+            opt.textContent = br ? `${res} (${br})` : res; el.qualitySelect.appendChild(opt);
           });
           el.qualitySelect.value = String(hls.currentLevel); el.qualitySelect.style.display = 'inline-block';
         } else el.qualitySelect.style.display = 'none';
@@ -2503,33 +2412,19 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       }
 
       function openPlayerModal(channel) {
-        destroyHls();
-        state.activeChannel = channel;
-        updatePlayerHeader(channel);
-        updatePlayerEpgBar(channel);
+        destroyHls(); state.activeChannel = channel; updatePlayerHeader(channel); updatePlayerEpgBar(channel);
         el.playerModal.classList.add('open');
-
         clearInterval(epgRefreshTimer);
-        epgRefreshTimer = setInterval(() => {
-          if (state.activeChannel && el.playerModal.classList.contains('open')) updatePlayerEpgBar(state.activeChannel);
-        }, 30000);
-
+        epgRefreshTimer = setInterval(() => { if (state.activeChannel && el.playerModal.classList.contains('open')) updatePlayerEpgBar(state.activeChannel); }, 30000);
         el.btnPlayerPip.disabled = !(document.pictureInPictureEnabled && !el.videoPlayer.disablePictureInPicture);
 
-        if (window.location.protocol === 'https:' && channel.url.startsWith('http://')) {
-          setPlayerStatus(true, t('playerMixedTitle'), t('playerMixedMsg')); return;
-        }
-
+        if (window.location.protocol === 'https:' && channel.url.startsWith('http://')) { setPlayerStatus(true, t('playerMixedTitle'), t('playerMixedMsg')); return; }
         const isHlsUrl = /\.m3u8(\?|$)/i.test(channel.url) || channel.url.includes('m3u8');
         if (window.Hls && Hls.isSupported() && (isHlsUrl || !channel.url.match(/\.(mp4|webm|ogg)(\?|$)/i))) {
           setPlayerStatus(true, t('playerConnectingTitle'), t('playerConnectingMsg'));
           hlsInstance = new Hls({ enableWorker: window.location.protocol !== 'file:', lowLatencyMode: true });
-          hlsInstance.loadSource(channel.url);
-          hlsInstance.attachMedia(el.videoPlayer);
-          hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-            setPlayerStatus(false); el.badgeLive.style.display = 'inline-flex';
-            populateHlsSelectors(hlsInstance); el.videoPlayer.play().catch(() => {});
-          });
+          hlsInstance.loadSource(channel.url); hlsInstance.attachMedia(el.videoPlayer);
+          hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => { setPlayerStatus(false); el.badgeLive.style.display = 'inline-flex'; populateHlsSelectors(hlsInstance); el.videoPlayer.play().catch(() => {}); });
           hlsInstance.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
             const lvl = hlsInstance?.levels?.[data.level];
             if (lvl) { const br = formatBitrate(lvl.bitrate); if (br) { el.badgeBitrate.textContent = br; el.badgeBitrate.style.display = 'inline-flex'; } }
@@ -2544,9 +2439,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
           });
         } else if (el.videoPlayer.canPlayType('application/vnd.apple.mpegurl') || channel.url.match(/\.(mp4|webm|ogg)(\?|$)/i)) {
           setPlayerStatus(false); el.videoPlayer.src = channel.url; el.videoPlayer.play().catch(() => {});
-        } else {
-          setPlayerStatus(true, t('playerUnsupportedTitle'), t('playerUnsupportedMsg'));
-        }
+        } else setPlayerStatus(true, t('playerUnsupportedTitle'), t('playerUnsupportedMsg'));
       }
 
       function zapChannel(offset) {
@@ -2570,13 +2463,9 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         if (fsEl) {
           if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
           else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        } else if (el.videoPlayer.requestFullscreen) {
-          el.videoPlayer.requestFullscreen().catch(() => {});
-        } else if (el.videoPlayer.webkitRequestFullscreen) {
-          el.videoPlayer.webkitRequestFullscreen();
-        } else if (el.videoPlayer.webkitEnterFullscreen) {
-          el.videoPlayer.webkitEnterFullscreen();
-        }
+        } else if (el.videoPlayer.requestFullscreen) el.videoPlayer.requestFullscreen().catch(() => {});
+        else if (el.videoPlayer.webkitRequestFullscreen) el.videoPlayer.webkitRequestFullscreen();
+        else if (el.videoPlayer.webkitEnterFullscreen) el.videoPlayer.webkitEnterFullscreen();
       }
 
       function takeVideoSnapshot() {
@@ -2589,8 +2478,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
             if (!blob) { showToast(t('toastSnapshotFailed')); return; }
             const filename = `${sanitizeChannelFilename(state.activeChannel.name).replace(/\.m3u$/, '')}-capture.png`;
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = filename;
-            document.body.appendChild(a); a.click(); a.remove();
+            const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
             setTimeout(() => URL.revokeObjectURL(url), 4000);
             showToast(t('toastSnapshotSaved', { filename }));
           }, 'image/png');
@@ -2600,17 +2488,10 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       function closePlayerModal() {
         clearInterval(epgRefreshTimer); epgRefreshTimer = null;
         const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
-        if (fsEl) {
-          if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
-          else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        }
+        if (fsEl) { if (document.exitFullscreen) document.exitFullscreen().catch(() => {}); else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); }
         if (document.pictureInPictureElement === el.videoPlayer) document.exitPictureInPicture().catch(() => {});
-        el.playerModal.classList.remove('open');
-        el.playerEpgBar.classList.remove('show');
-        destroyHls();
-        state.activeChannel = null;
-        el.modalChannelTitle.textContent = t('playerModalDefaultTitle');
-        el.modalChannelMeta.textContent = '';
+        el.playerModal.classList.remove('open'); el.playerEpgBar.classList.remove('show');
+        destroyHls(); state.activeChannel = null; el.modalChannelTitle.textContent = t('playerModalDefaultTitle'); el.modalChannelMeta.textContent = '';
       }
 
       // ============================
@@ -2621,7 +2502,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       el.dropzone.addEventListener('click', () => el.fileInput.click());
       el.dropzone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.fileInput.click(); } });
       el.fileInput.addEventListener('change', (e) => {
-        try { if (e.target.files?.[0]) handleFile(e.target.files[0]); }
+        try { if (e.target.files?.length) handleFiles(e.target.files, false); }
         catch (err) { showAlert(t('errFileSelect', { msg: err.message || err })); }
         finally { e.target.value = ''; }
       });
@@ -2629,13 +2510,28 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       el.dropzone.addEventListener('dragleave', () => el.dropzone.classList.remove('dragover'));
       el.dropzone.addEventListener('drop', (e) => {
         e.preventDefault(); el.dropzone.classList.remove('dragover');
-        if (e.dataTransfer.files?.[0]) handleFile(e.dataTransfer.files[0]);
+        if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files, false);
+      });
+
+      el.btnMergeFiles.addEventListener('click', () => el.mergeFileInput.click());
+      el.mergeFileInput.addEventListener('change', (e) => {
+        try { if (e.target.files?.length) handleFiles(e.target.files, state.channels.length > 0); }
+        catch (err) { showAlert(t('errFileSelect', { msg: err.message || err })); }
+        finally { e.target.value = ''; }
       });
 
       el.btnLoadUrl.addEventListener('click', handleLoadUrl);
       el.urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLoadUrl(); });
       el.btnDemo.addEventListener('click', loadDemoPlaylist);
       el.alertClose.addEventListener('click', hideAlert);
+
+      // Bulk Group Modal
+      el.btnOpenBulkGroup.addEventListener('click', openBulkGroupModal);
+      el.btnCloseBulkGroup.addEventListener('click', () => el.bulkGroupModal.classList.remove('open'));
+      el.btnCancelBulkGroup.addEventListener('click', () => el.bulkGroupModal.classList.remove('open'));
+      el.bulkGroupModal.addEventListener('click', (e) => { if (e.target === el.bulkGroupModal) el.bulkGroupModal.classList.remove('open'); });
+      el.btnApplyBulkGroup.addEventListener('click', applyBulkGroupChange);
+      el.bulkGroupNewInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyBulkGroupChange(); });
 
       // Clean Names Modal
       el.btnOpenCleanNames.addEventListener('click', () => el.cleanNamesModal.classList.add('open'));
@@ -2654,16 +2550,10 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       el.btnPickEpgFile.addEventListener('click', (e) => { e.stopPropagation(); el.epgFileInput.click(); });
       el.epgDropzone.addEventListener('click', () => el.epgFileInput.click());
       el.epgDropzone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.epgFileInput.click(); } });
-      el.epgFileInput.addEventListener('change', (e) => {
-        if (e.target.files?.[0]) handleEpgFile(e.target.files[0]);
-        e.target.value = '';
-      });
+      el.epgFileInput.addEventListener('change', (e) => { if (e.target.files?.[0]) handleEpgFile(e.target.files[0]); e.target.value = ''; });
       el.epgDropzone.addEventListener('dragover', (e) => { e.preventDefault(); el.epgDropzone.classList.add('dragover'); });
       el.epgDropzone.addEventListener('dragleave', () => el.epgDropzone.classList.remove('dragover'));
-      el.epgDropzone.addEventListener('drop', (e) => {
-        e.preventDefault(); el.epgDropzone.classList.remove('dragover');
-        if (e.dataTransfer.files?.[0]) handleEpgFile(e.dataTransfer.files[0]);
-      });
+      el.epgDropzone.addEventListener('drop', (e) => { e.preventDefault(); el.epgDropzone.classList.remove('dragover'); if (e.dataTransfer.files?.[0]) handleEpgFile(e.dataTransfer.files[0]); });
       el.btnLoadEpgUrl.addEventListener('click', () => handleLoadEpgUrl(false));
       el.epgUrlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLoadEpgUrl(false); });
       el.btnClearEpg.addEventListener('click', clearEpg);
@@ -2686,7 +2576,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       el.btnDedupName.addEventListener('click', () => deduplicateChannels('name'));
       el.btnDedupBoth.addEventListener('click', () => deduplicateChannels('both'));
 
-      // Dead Link Scanner & Filters
+      // Scanner & Filters
       el.btnTestStreams.addEventListener('click', startBatchStreamTest);
       el.btnStopTest.addEventListener('click', stopBatchStreamTest);
       el.btnRemoveDead.addEventListener('click', removeDeadLinks);
@@ -2708,7 +2598,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         if (state.scan.running) stopBatchStreamTest();
         state.originalChannels = []; state.channels = []; state.filtered = []; state.selected.clear();
         state.group = ''; state.search = ''; state.favoritesOnly = false; state.activeOnly = false; state.duplicatesOnly = false; state.page = 1;
-        state.sourceKey = ''; state.sourceCustom = ''; state.scan.total = 0; state.scan.done = 0; state.epg.detectedUrl = '';
+        state.sourceKey = ''; state.sourceCustom = ''; state.sourceParams = {}; state.scan.total = 0; state.scan.done = 0; state.epg.detectedUrl = '';
         el.searchInput.value = ''; el.btnFavoritesOnly.classList.remove('active'); el.btnActiveOnly.classList.remove('active'); el.btnDuplicatesOnly.classList.remove('active');
         populateGroupFilter(); updateSourceLabel(); updateEpgUiStatus(); hideAlert(); analyzeDuplicates(); updateStats(); updateScanSummary(); renderChannelPage();
       });
@@ -2719,8 +2609,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       function goToPage(pageNum) {
         const totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
         state.page = Math.min(Math.max(1, pageNum), totalPages);
-        renderChannelPage();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        renderChannelPage(); window.scrollTo({ top: 0, behavior: 'smooth' });
       }
       el.btnFirstPage.addEventListener('click', () => goToPage(1));
       el.btnPrevPage.addEventListener('click', () => goToPage(state.page - 1));
@@ -2747,6 +2636,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         if (e.key === 'Escape') {
           if (document.fullscreenElement || document.webkitFullscreenElement) return;
           if (el.playerModal.classList.contains('open')) closePlayerModal();
+          if (el.bulkGroupModal.classList.contains('open')) el.bulkGroupModal.classList.remove('open');
           if (el.cleanNamesModal.classList.contains('open')) el.cleanNamesModal.classList.remove('open');
           if (el.epgModal.classList.contains('open')) el.epgModal.classList.remove('open');
           if (el.helpModal.classList.contains('open')) el.helpModal.classList.remove('open');
