@@ -25,8 +25,8 @@
     .topbar { position: sticky; top: 0; z-index: 40; background: rgba(11, 15, 23, 0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
     .brand { display: flex; align-items: center; gap: 12px; }
     .brand-logo { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #3b82f6, #06b6d4); display: grid; place-items: center; font-weight: 800; font-size: 15px; color: #fff; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35); }
-    .brand h1 { font-size: 1.1rem; font-weight: 700; }
-    .brand span { display: block; font-size: 0.75rem; color: var(--text-muted); }
+    .brand h1 { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .brand span.sub { display: block; font-size: 0.75rem; color: var(--text-muted); }
     .topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border-radius: 8px; font-size: 0.84rem; font-weight: 500; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); transition: all 0.15s ease; white-space: nowrap; text-decoration: none; }
     .btn:hover:not(:disabled) { background: var(--bg-card-hover); border-color: #364766; }
@@ -78,6 +78,7 @@
     .toggle-btn.active { background: var(--warning-soft); border-color: rgba(245, 158, 11, 0.45); color: #fbbf24; }
     .toggle-dup.active { background: var(--purple-soft); border-color: rgba(168, 85, 247, 0.45); color: #d8b4fe; }
     .toggle-active.active { background: var(--success-soft); border-color: rgba(16, 185, 129, 0.55); color: #6ee7b7; box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.25); }
+    .toggle-ffprobe.active { background: var(--accent-soft); border-color: rgba(59, 130, 246, 0.55); color: #93c5fd; }
     .toolbar-meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-muted); }
     .stats-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; background: var(--bg-card); border: 1px solid var(--border); font-size: 0.76rem; color: var(--text-main); }
@@ -187,8 +188,11 @@
     <div class="brand">
       <div class="brand-logo">M3U</div>
       <div>
-        <h1>M3U Studio</h1>
-        <span data-i18n="brandSubtitle">Analyseur, filtre, test de liens &amp; lecteur IPTV</span>
+        <h1>
+          M3U Studio
+          <span id="proxyActiveBadge" class="badge badge-ok" style="display: none; font-weight: 600;"></span>
+        </h1>
+        <span class="sub" data-i18n="brandSubtitle">Analyseur, filtre, test de liens &amp; lecteur IPTV</span>
       </div>
     </div>
     <div class="topbar-actions">
@@ -236,14 +240,14 @@
       </div>
       <div class="url-loader">
         <div>
-          <label for="urlInput" data-i18n="urlLabel">Importer depuis une URL directe (si le serveur autorise CORS)</label>
+          <label for="urlInput" data-i18n="urlLabel">Importer depuis une URL directe</label>
           <div class="input-group">
             <input id="urlInput" type="url" class="input" data-i18n-placeholder="urlPlaceholder" placeholder="https://iptv-org.github.io/iptv/languages/fra.m3u" />
             <button id="btnLoadUrl" class="btn btn-primary" type="button" data-i18n="loadUrlBtn">Charger l'URL</button>
           </div>
         </div>
         <div class="url-hints">
-          <span data-i18n="urlCorsHint">Si l'URL est bloquée (CORS), ouvrez-la dans un onglet pour télécharger le fichier puis importez-le à gauche.</span>
+          <span id="urlHintText" data-i18n="urlCorsHint">Si l'URL est bloquée (CORS), ouvrez-la dans un onglet pour télécharger le fichier puis importez-le à gauche (ou utilisez le lanceur Windows).</span>
           <span id="sourceLabel"></span>
         </div>
       </div>
@@ -274,6 +278,7 @@
         <button id="btnDuplicatesOnly" class="btn toggle-dup" type="button" disabled>
           <span data-i18n="duplicatesOnlyBtn">Doublons uniquement</span> (<span id="dupFilterCount">0</span>)
         </button>
+        <button id="btnUseFfprobe" class="btn toggle-ffprobe" type="button" style="display: none;" data-i18n-title="ffprobeToggleTitle" data-i18n="ffprobeToggleBtn">Test réel (FFprobe)</button>
         <select id="pageSizeSelect" class="select" data-i18n-aria="pageSizeAria">
           <option value="60" data-i18n="perPage60">60 / page</option>
           <option value="120" data-i18n="perPage120">120 / page</option>
@@ -313,7 +318,7 @@
           <strong id="scanStatusText" style="font-size: 0.86rem;">Analyse des flux...</strong>
           <span class="badge badge-ok"><span data-i18n="summaryActiveLabel">Actif :</span> <strong id="summaryActive">0</strong></span>
           <span class="badge badge-dead"><span data-i18n="summaryDeadLabel">Mort :</span> <strong id="summaryDead">0</strong></span>
-          <span class="badge badge-blocked"><span data-i18n="summaryBlockedLabel">Bloqué / CORS :</span> <strong id="summaryBlocked">0</strong></span>
+          <span class="badge badge-blocked"><span id="summaryBlockedLabel">Bloqué / CORS :</span> <strong id="summaryBlocked">0</strong></span>
         </div>
         <span id="scanProgressText" style="font-size: 0.82rem; color: var(--text-muted);">0 / 0</span>
       </div>
@@ -334,7 +339,6 @@
     </nav>
   </main>
 
-  <!-- Modal Changer Catégorie en masse -->
   <div id="bulkGroupModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="bulkGroupModalTitle">
     <div class="modal" style="max-width: 540px;">
       <div class="modal-header">
@@ -363,7 +367,6 @@
     </div>
   </div>
 
-  <!-- Modal Nettoyer les noms -->
   <div id="cleanNamesModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="cleanNamesModalTitle">
     <div class="modal" style="max-width: 600px;">
       <div class="modal-header">
@@ -402,7 +405,6 @@
     </div>
   </div>
 
-  <!-- Modal EPG / Guide TV -->
   <div id="epgModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="epgModalTitle">
     <div class="modal" style="max-width: 680px;">
       <div class="modal-header">
@@ -438,7 +440,6 @@
     </div>
   </div>
 
-  <!-- Modal Aide -->
   <div id="helpModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
     <div class="modal" style="max-width: 760px;">
       <div class="modal-header">
@@ -456,7 +457,6 @@
     </div>
   </div>
 
-  <!-- Modal Coller M3U -->
   <div id="pasteModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="pasteModalTitle">
     <div class="modal" style="max-width: 680px;">
       <div class="modal-header">
@@ -474,7 +474,6 @@
     </div>
   </div>
 
-  <!-- Modal Nettoyage Doublons -->
   <div id="dedupModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="dedupModalTitle">
     <div class="modal" style="max-width: 580px;">
       <div class="modal-header">
@@ -508,7 +507,6 @@
     </div>
   </div>
 
-  <!-- Modal Lecteur HLS Avancé -->
   <div id="playerModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalChannelTitle">
     <div class="modal">
       <div class="modal-header">
@@ -585,14 +583,22 @@
 
       const FAVORITES_STORAGE_KEY = 'm3u_studio_favorites_v1';
       const LANG_STORAGE_KEY = 'm3u_studio_lang_v1';
-      const SCAN_CONCURRENCY = 8;
-      const SCAN_TIMEOUT_MS = 4000;
+      const SCAN_CONCURRENCY_HTTP = 8;
+      const SCAN_CONCURRENCY_FFPROBE = 4;
+      const SCAN_TIMEOUT_MS = 5000;
 
       const translations = {
         fr: {
           pageTitle: 'M3U Studio — Gestionnaire & Lecteur de Playlists IPTV',
           locale: 'fr-FR',
           brandSubtitle: 'Analyseur, filtre, test de liens & lecteur IPTV',
+          proxyActiveBadge: 'Mode Windows (Sans CORS)',
+          urlHintWindowsActive: 'Relais local Windows actif : URLs, tests (avec double User-Agent), FFprobe et flux HLS contournent le CORS.',
+          ffprobeToggleBtn: 'Test réel (FFprobe)',
+          ffprobeToggleTitle: "Tester l'ouverture réelle du flux vidéo/audio avec FFprobe",
+          launchDirectBtn: 'Lancer dans {player}',
+          launchDirectTitle: 'Ouvrir directement ce flux dans {player}',
+          toastLaunchedPlayer: 'Lancement de {player}...',
           langToggleText: '🇬🇧 EN',
           langToggleTitle: 'Switch to English',
           helpBtn: 'Aide',
@@ -608,11 +614,11 @@
           dropzoneTitle: 'Glissez-déposez un ou plusieurs fichiers .m3u / .m3u8 ici',
           browseFilesBtn: 'Parcourir mes fichiers',
           dropzoneHint: 'Sélection multiple supportée · Traitement 100% local',
-          urlLabel: 'Importer depuis une URL directe (si le serveur autorise CORS)',
+          urlLabel: 'Importer depuis une URL directe',
           urlPlaceholder: 'https://iptv-org.github.io/iptv/languages/fra.m3u',
           loadUrlBtn: "Charger l'URL",
           loadingBtn: 'Chargement...',
-          urlCorsHint: "Si l'URL est bloquée (CORS), ouvrez-la dans un onglet pour télécharger le fichier puis importez-le à gauche.",
+          urlCorsHint: "Si l'URL est bloquée (CORS), ouvrez-la dans un onglet pour télécharger le fichier puis importez-le à gauche (ou utilisez le lanceur Windows).",
           sourcePrefix: 'Source :',
           closeAria: 'Fermer',
           cancelBtn: 'Annuler',
@@ -650,6 +656,7 @@
           summaryActiveLabel: 'Actif :',
           summaryDeadLabel: 'Mort :',
           summaryBlockedLabel: 'Bloqué / CORS :',
+          summaryBlockedWindowsLabel: 'Refusé / Restreint :',
           checkedCount: '{count} vérifiée(s)',
           paginationInfo: 'Affichage de {start} à {end} sur {total} chaînes',
           pageIndicator: 'Page {page} / {total}',
@@ -704,10 +711,12 @@
           statusActive: 'Actif',
           statusDead: 'Mort',
           statusBlocked: 'Bloqué / CORS',
+          statusBlockedWindows: 'Refusé',
           detailNonHttp: 'Protocole non-HTTP',
           detailMixedContent: 'HTTP sur HTTPS',
-          detailTimeout: 'Timeout 4s',
+          detailTimeout: 'Timeout 5s',
           detailCorsNetwork: 'Réseau / CORS',
+          detailFfprobe: 'FFprobe',
           cardTestBtn: 'Tester',
           cardTestTitle: 'Tester la disponibilité du lien',
           cardCopyBtn: 'Copier',
@@ -754,7 +763,7 @@
               <ul>
                 <li><strong>Fichier local (ou sélection multiple) :</strong> glissez-déposez un ou plusieurs fichiers <code>.m3u</code> / <code>.m3u8</code> d'un coup, ou cliquez sur <strong>Parcourir mes fichiers</strong>.</li>
                 <li><strong>Fusionner (.m3u) :</strong> utilisez le bouton <strong>+ Fusionner (.m3u)</strong> en haut pour ajouter d'autres playlists à la liste déjà ouverte avant de nettoyer les doublons et d'exporter.</li>
-                <li><strong>URL directe / Coller texte :</strong> collez une URL (si autorisée par CORS) ou du texte brut via <strong>Coller texte M3U</strong>.</li>
+                <li><strong>Mode Windows sans CORS (<code>Lancer-M3U-Studio.bat</code>) :</strong> contourne le CORS automatiquement, tente deux User-Agents (VLC + Chrome), utilise <strong>FFprobe</strong> si FFmpeg est installé sur votre PC, et permet de <strong>lancer directement VLC / MPV</strong> en 1 clic.</li>
               </ul>
             </div>
             <div class="help-section">
@@ -771,7 +780,7 @@
               <h3>3. Rechercher, filtrer &amp; tester les liens</h3>
               <ul>
                 <li><strong>Recherche &amp; filtres :</strong> filtrez par nom, catégorie, <strong>Favoris uniquement</strong> (★), <strong>Actifs uniquement</strong> ou <strong>Doublons uniquement</strong>.</li>
-                <li><strong>Tester les flux :</strong> vérifie les liens par lots (timeout 4 s) : <strong>Actif</strong>, <strong>Mort</strong> ou <strong>Bloqué / CORS</strong>.</li>
+                <li><strong>Tester les flux :</strong> vérifie les liens par lots (en HTTP ou via <strong>Test réel FFprobe</strong> si installé sur Windows 11).</li>
                 <li><strong>Nettoyer :</strong> retirez les liens <strong>Mort</strong> ou les doublons avant d'exporter.</li>
               </ul>
             </div>
@@ -786,7 +795,7 @@
             <div class="help-section">
               <h3>5. Ouvrir dans VLC / MPV (Windows 11) &amp; exporter</h3>
               <ul>
-                <li><strong>Envoyer vers lecteur (.m3u) :</strong> télécharge un mini fichier <code>.m3u</code> dans <em>Téléchargements</em>. Sur Windows 11, associez <code>.m3u</code> à VLC (<em>Clic droit → Ouvrir avec → VLC → Toujours</em>).</li>
+                <li><strong>Lancer dans VLC / Envoyer vers lecteur (.m3u) :</strong> avec le lanceur Windows, si VLC ou MPV est détecté, le flux s'ouvre directement dans le lecteur. Sinon, un mini fichier <code>.m3u</code> est téléchargé dans <em>Téléchargements</em>.</li>
                 <li><strong>Exporter filtrées / sélection :</strong> génère votre nouveau fichier <code>.m3u</code> propre avec vos renommages, catégories et ordre personnalisé.</li>
               </ul>
             </div>`,
@@ -823,17 +832,17 @@
           fullscreenBtn: '⛶ Plein écran',
           fullscreenTitle: 'Plein écran (F)',
           copyUrlBtn: "Copier l'URL",
-          playerFooterHint: 'Cliquez sur <strong>Envoyer vers lecteur (.m3u)</strong>, puis ouvrez le fichier téléchargé dans VLC ou MPV. Raccourcis : <code>←/→</code>, <code>Espace</code>, <code>M</code>, <code>F</code>, <code>P</code>.',
+          playerFooterHint: 'Utilisez <strong>Envoyer / Lancer dans VLC</strong> pour les flux incompatibles navigateur. Raccourcis : <code>←/→</code>, <code>Espace</code>, <code>M</code>, <code>F</code>, <code>P</code>.',
           playerMixedTitle: 'Flux HTTP bloqué par sécurité (Contenu Mixte)',
-          playerMixedMsg: 'Votre page est ouverte en HTTPS mais ce flux est en HTTP. Utilisez "Envoyer vers lecteur (.m3u)".',
+          playerMixedMsg: 'Votre page est ouverte en HTTPS mais ce flux est en HTTP. Utilisez le bouton lecteur externe.',
           playerConnectingTitle: 'Connexion au flux...',
           playerConnectingMsg: 'Initialisation du lecteur HLS...',
           playerErrorTitle: 'Lecture impossible dans le navigateur',
           playerErrorGeneric: 'Le navigateur ne parvient pas à lire ce flux.',
-          playerErrorNetwork: 'Flux inaccessible, expiré ou bloqué par CORS. Utilisez "Envoyer vers lecteur (.m3u)".',
-          playerErrorMedia: 'Format vidéo/audio incompatible avec le navigateur. Utilisez "Envoyer vers lecteur (.m3u)".',
+          playerErrorNetwork: 'Flux inaccessible, expiré ou refusé. Essayez de le lancer dans VLC / MPV.',
+          playerErrorMedia: 'Format vidéo/audio incompatible avec le navigateur. Lancez-le dans VLC / MPV.',
           playerUnsupportedTitle: 'Lecteur HLS indisponible (hors-ligne ou format non supporté)',
-          playerUnsupportedMsg: 'Utilisez "Envoyer vers lecteur (.m3u)" pour lancer VLC ou MPV.',
+          playerUnsupportedMsg: 'Lancez ce flux dans VLC ou MPV.',
           toastPipUnsupported: 'Le mode Image dans l’image (PiP) n’est pas disponible sur ce navigateur.',
           toastSnapshotSaved: 'Capture "{filename}" enregistrée !',
           toastSnapshotFailed: 'Capture impossible : flux vidéo vide ou bloqué par la sécurité CORS.',
@@ -860,7 +869,7 @@
           toastDedupRemoved: '{count} doublon(s) supprimé(s).',
           toastDedupNone: 'Aucun doublon à supprimer.',
           toastScanStopped: 'Test arrêté ({count} analysées).',
-          toastScanDone: 'Scan terminé : {active} actif(s), {dead} mort(s), {blocked} bloqué(s)/CORS.',
+          toastScanDone: 'Scan terminé : {active} actif(s), {dead} mort(s), {blocked} autre(s).',
           toastDeadRemoved: '{count} lien(s) mort(s) retiré(s).',
           toastDeadNone: 'Aucun lien mort à retirer.',
           toastResetDone: 'Liste réinitialisée ({count} chaînes restaurées).',
@@ -876,6 +885,13 @@
           pageTitle: 'M3U Studio — IPTV Playlist Manager & Player',
           locale: 'en-US',
           brandSubtitle: 'Analyzer, filter, link checker & IPTV player',
+          proxyActiveBadge: 'Windows Mode (CORS-Free)',
+          urlHintWindowsActive: 'Windows local relay active: .m3u URLs, checks (dual User-Agent), FFprobe, and HLS streams bypass CORS.',
+          ffprobeToggleBtn: 'Real test (FFprobe)',
+          ffprobeToggleTitle: 'Probe actual video/audio stream availability with FFprobe',
+          launchDirectBtn: 'Launch in {player}',
+          launchDirectTitle: 'Open this stream directly in {player}',
+          toastLaunchedPlayer: 'Launching {player}...',
           langToggleText: '🇫🇷 FR',
           langToggleTitle: 'Passer en français',
           helpBtn: 'Help',
@@ -891,11 +907,11 @@
           dropzoneTitle: 'Drag & drop one or more .m3u / .m3u8 files here',
           browseFilesBtn: 'Browse files',
           dropzoneHint: 'Multi-file selection supported · 100% local processing',
-          urlLabel: 'Import from a direct URL (if the server allows CORS)',
+          urlLabel: 'Import from a direct URL',
           urlPlaceholder: 'https://iptv-org.github.io/iptv/languages/eng.m3u',
           loadUrlBtn: 'Load URL',
           loadingBtn: 'Loading...',
-          urlCorsHint: 'If the URL is blocked (CORS), open it in a new tab to download the file, then drop it on the left.',
+          urlCorsHint: 'If the URL is blocked (CORS), open it in a new tab to download the file, then drop it on the left (or use the Windows launcher).',
           sourcePrefix: 'Source:',
           closeAria: 'Close',
           cancelBtn: 'Cancel',
@@ -933,6 +949,7 @@
           summaryActiveLabel: 'Active:',
           summaryDeadLabel: 'Dead:',
           summaryBlockedLabel: 'Blocked / CORS:',
+          summaryBlockedWindowsLabel: 'Rejected / Restricted:',
           checkedCount: '{count} checked',
           paginationInfo: 'Showing {start} to {end} of {total} channels',
           pageIndicator: 'Page {page} / {total}',
@@ -987,10 +1004,12 @@
           statusActive: 'Active',
           statusDead: 'Dead',
           statusBlocked: 'Blocked / CORS',
+          statusBlockedWindows: 'Rejected',
           detailNonHttp: 'Non-HTTP protocol',
           detailMixedContent: 'HTTP on HTTPS',
-          detailTimeout: 'Timeout 4s',
+          detailTimeout: 'Timeout 5s',
           detailCorsNetwork: 'Network / CORS',
+          detailFfprobe: 'FFprobe',
           cardTestBtn: 'Test',
           cardTestTitle: 'Test stream availability',
           cardCopyBtn: 'Copy',
@@ -1037,7 +1056,7 @@
               <ul>
                 <li><strong>Local file (or multi-select):</strong> drag &amp; drop one or more <code>.m3u</code> / <code>.m3u8</code> files at once, or click <strong>Browse files</strong>.</li>
                 <li><strong>Merge (.m3u):</strong> use the <strong>+ Merge (.m3u)</strong> button in the header to append extra playlists to the currently open list before deduplicating and exporting.</li>
-                <li><strong>Direct URL / Paste text:</strong> paste a URL (if CORS-enabled) or raw text via <strong>Paste M3U text</strong>.</li>
+                <li><strong>Windows CORS-Free Mode (<code>Lancer-M3U-Studio.bat</code>):</strong> bypasses CORS automatically, retries with dual User-Agents (VLC + Chrome), uses <strong>FFprobe</strong> if FFmpeg is installed, and can <strong>launch VLC / MPV directly</strong> in 1 click.</li>
               </ul>
             </div>
             <div class="help-section">
@@ -1054,7 +1073,7 @@
               <h3>3. Search, filter &amp; check links</h3>
               <ul>
                 <li><strong>Search &amp; filters:</strong> filter by name, category, <strong>Favorites only</strong> (★), <strong>Active only</strong>, or <strong>Duplicates only</strong>.</li>
-                <li><strong>Test streams:</strong> checks links in batches (4s timeout) as <strong>Active</strong>, <strong>Dead</strong>, or <strong>Blocked / CORS</strong>.</li>
+                <li><strong>Test streams:</strong> checks links in batches (via HTTP or <strong>Real test FFprobe</strong> if installed on Windows 11).</li>
                 <li><strong>Cleanup:</strong> remove <strong>Dead</strong> links or duplicates before exporting.</li>
               </ul>
             </div>
@@ -1069,7 +1088,7 @@
             <div class="help-section">
               <h3>5. Open in VLC / MPV (Windows 11) &amp; export</h3>
               <ul>
-                <li><strong>Send to player (.m3u):</strong> downloads a mini <code>.m3u</code> file into <em>Downloads</em>. On Windows 11, associate <code>.m3u</code> with VLC (<em>Right-click → Open with → VLC → Always</em>).</li>
+                <li><strong>Launch in VLC / Send to player (.m3u):</strong> with the Windows launcher, if VLC or MPV is detected, streams open directly in the player. Otherwise, a mini <code>.m3u</code> file is downloaded into <em>Downloads</em>.</li>
                 <li><strong>Export filtered / selected:</strong> generates a clean <code>.m3u</code> file keeping your renamed titles, categories, and custom order.</li>
               </ul>
             </div>`,
@@ -1106,17 +1125,17 @@
           fullscreenBtn: '⛶ Fullscreen',
           fullscreenTitle: 'Fullscreen (F)',
           copyUrlBtn: 'Copy URL',
-          playerFooterHint: 'Click <strong>Send to player (.m3u)</strong>, then open the downloaded file in VLC or MPV. Shortcuts: <code>←/→</code>, <code>Space</code>, <code>M</code>, <code>F</code>, <code>P</code>.',
+          playerFooterHint: 'Use <strong>Send / Launch in VLC</strong> for streams incompatible with browsers. Shortcuts: <code>←/→</code>, <code>Space</code>, <code>M</code>, <code>F</code>, <code>P</code>.',
           playerMixedTitle: 'HTTP stream blocked by security (Mixed Content)',
-          playerMixedMsg: 'This page is served over HTTPS while the stream uses plain HTTP. Use "Send to player (.m3u)".',
+          playerMixedMsg: 'This page is served over HTTPS while the stream uses plain HTTP. Use the external player button.',
           playerConnectingTitle: 'Connecting to stream...',
           playerConnectingMsg: 'Initializing HLS player...',
           playerErrorTitle: 'Cannot play in browser',
           playerErrorGeneric: 'The browser is unable to play this stream.',
-          playerErrorNetwork: 'Stream unreachable, expired, or blocked by CORS. Use "Send to player (.m3u)".',
-          playerErrorMedia: 'Video/audio format incompatible with the browser. Use "Send to player (.m3u)".',
+          playerErrorNetwork: 'Stream unreachable, expired, or rejected. Try launching it in VLC / MPV.',
+          playerErrorMedia: 'Video/audio format incompatible with the browser. Launch it in VLC / MPV.',
           playerUnsupportedTitle: 'HLS player unavailable (offline or unsupported format)',
-          playerUnsupportedMsg: 'Use "Send to player (.m3u)" to launch VLC or MPV.',
+          playerUnsupportedMsg: 'Launch this stream in VLC or MPV.',
           toastPipUnsupported: 'Picture-in-Picture (PiP) is not supported in this browser.',
           toastSnapshotSaved: 'Snapshot "{filename}" saved!',
           toastSnapshotFailed: 'Snapshot failed: empty video frame or blocked by CORS security.',
@@ -1143,7 +1162,7 @@
           toastDedupRemoved: '{count} duplicate(s) removed.',
           toastDedupNone: 'No duplicates to remove.',
           toastScanStopped: 'Test stopped ({count} checked).',
-          toastScanDone: 'Scan finished: {active} active, {dead} dead, {blocked} blocked/CORS.',
+          toastScanDone: 'Scan finished: {active} active, {dead} dead, {blocked} other.',
           toastDeadRemoved: '{count} dead link(s) removed.',
           toastDeadNone: 'No dead links to remove.',
           toastResetDone: 'List reset ({count} channels restored).',
@@ -1169,6 +1188,7 @@
       function fmtNum(n) { return Number(n).toLocaleString(t('locale')); }
 
       const state = {
+        localProxyActive: false, localFfprobe: false, useFfprobe: false, localPlayerName: '',
         originalChannels: [], channels: [], filtered: [], favorites: loadFavorites(), selected: new Set(),
         search: '', group: '', favoritesOnly: false, activeOnly: false, duplicatesOnly: false,
         page: 1, pageSize: 60, sourceKey: '', sourceCustom: '', sourceParams: {},
@@ -1181,6 +1201,8 @@
       let hlsInstance = null, searchDebounceTimer = null, liveActiveRefreshTimer = null, epgRefreshTimer = null;
 
       const el = {
+        proxyActiveBadge: document.getElementById('proxyActiveBadge'), urlHintText: document.getElementById('urlHintText'),
+        btnUseFfprobe: document.getElementById('btnUseFfprobe'), summaryBlockedLabel: document.getElementById('summaryBlockedLabel'),
         btnLangToggle: document.getElementById('btnLangToggle'),
         dropzone: document.getElementById('dropzone'), btnPickFile: document.getElementById('btnPickFile'), fileInput: document.getElementById('fileInput'),
         mergeFileInput: document.getElementById('mergeFileInput'), btnMergeFiles: document.getElementById('btnMergeFiles'),
@@ -1237,6 +1259,47 @@
         toastContainer: document.getElementById('toastContainer')
       };
 
+      function toProxyUrl(rawUrl, isProbe = false) {
+        if (!state.localProxyActive || !/^https?:\/\//i.test(rawUrl) || rawUrl.startsWith(window.location.origin)) return rawUrl;
+        return `${window.location.origin}/proxy?url=${encodeURIComponent(rawUrl)}${isProbe ? '&probe=1' : ''}`;
+      }
+
+      function updateWindowsModeBadges() {
+        if (!state.localProxyActive) return;
+        const extras = [];
+        if (state.localFfprobe) extras.push('FFprobe');
+        if (state.localPlayerName) extras.push(state.localPlayerName);
+        el.proxyActiveBadge.textContent = extras.length ? `${t('proxyActiveBadge')} · ${extras.join(' · ')}` : t('proxyActiveBadge');
+        el.proxyActiveBadge.style.display = 'inline-flex';
+        el.urlHintText.textContent = t('urlHintWindowsActive');
+        el.summaryBlockedLabel.textContent = t('summaryBlockedWindowsLabel');
+        if (state.localFfprobe) {
+          el.btnUseFfprobe.style.display = 'inline-flex';
+          el.btnUseFfprobe.classList.toggle('active', state.useFfprobe);
+        }
+        const playerLabel = state.localPlayerName ? t('launchDirectBtn', { player: state.localPlayerName }) : t('sendToPlayerBtn');
+        el.btnModalSendPlayer.textContent = playerLabel;
+        el.btnFooterSendPlayer.textContent = playerLabel;
+      }
+
+      async function detectLocalWindowsProxy() {
+        if (!/^https?:$/i.test(window.location.protocol)) return;
+        try {
+          const res = await fetch('/proxy-status', { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.ok) {
+              state.localProxyActive = true;
+              state.localFfprobe = !!data.ffprobe;
+              state.useFfprobe = !!data.ffprobe;
+              state.localPlayerName = data.player && data.playerName ? data.playerName : '';
+              updateWindowsModeBadges();
+              renderChannelPage();
+            }
+          }
+        } catch {}
+      }
+
       function applyTranslations() {
         document.documentElement.lang = currentLang;
         document.title = t('pageTitle');
@@ -1249,6 +1312,8 @@
         document.querySelectorAll('[data-i18n-title]').forEach((n) => { n.title = t(n.dataset.i18nTitle); });
         document.querySelectorAll('[data-i18n-aria]').forEach((n) => { n.setAttribute('aria-label', t(n.dataset.i18nAria)); });
         el.helpModalBody.innerHTML = t('helpBodyHtml');
+        el.summaryBlockedLabel.textContent = state.localProxyActive ? t('summaryBlockedWindowsLabel') : t('summaryBlockedLabel');
+        updateWindowsModeBadges();
         updateSourceLabel();
         updateEpgUiStatus();
         if (!el.btnLoadUrl.disabled) el.btnLoadUrl.textContent = t('loadUrlBtn');
@@ -1300,9 +1365,6 @@
         ch.searchIndex = `${ch.name} ${ch.group} ${ch.tvgId} ${ch.language} ${ch.country}`.toLowerCase();
       }
 
-      // ============================
-      // M3U Parser
-      // ============================
       function parseExtInfLine(line) {
         const content = line.slice(8);
         let inQuotes = false, quoteChar = '', commaIdx = -1;
@@ -1384,19 +1446,11 @@
         catch { return t('untitledStream'); }
       }
 
-      // ============================
-      // Edit: Rename, Clean Names, Reorder, Delete Single, Bulk Group
-      // ============================
       function renameChannel(channel, newRawName) {
         const trimmed = String(newRawName || '').trim();
         if (!trimmed || trimmed === channel.name) return false;
-        channel.name = trimmed;
-        rebuildSearchIndex(channel);
-        analyzeDuplicates();
-        updateStats();
-        if (state.activeChannel && state.activeChannel.uid === channel.uid) {
-          updatePlayerHeader(channel); updatePlayerEpgBar(channel);
-        }
+        channel.name = trimmed; rebuildSearchIndex(channel); analyzeDuplicates(); updateStats();
+        if (state.activeChannel && state.activeChannel.uid === channel.uid) { updatePlayerHeader(channel); updatePlayerEpgBar(channel); }
         showToast(t('toastRenamed', { name: trimmed }));
         return true;
       }
@@ -1421,16 +1475,10 @@
         for (const ch of state.channels) groups.add(ch.group);
         const sorted = [...groups].sort((a, b) => a.localeCompare(b, t('locale')));
         el.bulkGroupExistingSelect.innerHTML = '';
-        const emptyOpt = document.createElement('option');
-        emptyOpt.value = ''; emptyOpt.textContent = t('bulkGroupSelectPlaceholder');
+        const emptyOpt = document.createElement('option'); emptyOpt.value = ''; emptyOpt.textContent = t('bulkGroupSelectPlaceholder');
         el.bulkGroupExistingSelect.appendChild(emptyOpt);
-        for (const g of sorted) {
-          const opt = document.createElement('option'); opt.value = g; opt.textContent = g;
-          el.bulkGroupExistingSelect.appendChild(opt);
-        }
-        el.bulkGroupNewInput.value = '';
-        el.bulkGroupModal.classList.add('open');
-        el.bulkGroupNewInput.focus();
+        for (const g of sorted) { const opt = document.createElement('option'); opt.value = g; opt.textContent = g; el.bulkGroupExistingSelect.appendChild(opt); }
+        el.bulkGroupNewInput.value = ''; el.bulkGroupModal.classList.add('open'); el.bulkGroupNewInput.focus();
       }
 
       function applyBulkGroupChange() {
@@ -1443,8 +1491,7 @@
         }
         state.selected.clear();
         el.bulkGroupModal.classList.remove('open');
-        populateGroupFilter();
-        applyFilters();
+        populateGroupFilter(); applyFilters();
         showToast(t('toastBulkGroupMoved', { count: fmtNum(moved), group: newName }));
       }
 
@@ -1481,13 +1528,9 @@
         state.channels.splice(toIdx, 0, moved);
         state.selected.clear();
         state.channels.forEach((ch, idx) => { ch.uid = idx; if (selectedSet.has(ch)) state.selected.add(idx); });
-        applyFilters();
-        showToast(t('toastReordered'));
+        applyFilters(); showToast(t('toastReordered'));
       }
 
-      // ============================
-      // EPG (XMLTV) Parser & Matcher
-      // ============================
       function parseXmltvDate(str) {
         const m = String(str || '').trim().match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})?\s*([+-]\d{4}|Z)?/);
         if (!m) return NaN;
@@ -1500,8 +1543,7 @@
       function parseXmltv(xmlText) {
         const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
         if (doc.querySelector('parsererror')) throw new Error(t('epgErrParse'));
-        const nameToIds = new Map();
-        const chNodes = doc.getElementsByTagName('channel');
+        const nameToIds = new Map(), chNodes = doc.getElementsByTagName('channel');
         for (let i = 0; i < chNodes.length; i++) {
           const chNode = chNodes[i], id = (chNode.getAttribute('id') || '').trim().toLowerCase();
           if (!id) continue;
@@ -1603,7 +1645,7 @@
         try { new URL(url); } catch { if (!silent) el.epgStatusLine.textContent = t('errUrlMalformed'); return; }
         el.btnLoadEpgUrl.disabled = true; el.btnLoadEpgUrl.textContent = t('loadingBtn'); el.epgStatusLine.textContent = t('epgLoading');
         try {
-          const res = await fetch(url, { mode: 'cors' });
+          const res = await fetch(toProxyUrl(url), { mode: 'cors' });
           if (!res.ok) throw new Error(t('errUrlHttp', { status: res.status, statusText: res.statusText || t('errorWord') }));
           applyParsedEpg(parseXmltv(await readEpgBuffer(await res.arrayBuffer(), url)), url);
         } catch (err) {
@@ -1644,9 +1686,6 @@
         el.playerEpgNext.textContent = info.next ? `${t('epgNextPrefix')} ${info.next.title} (${formatTimeRange(info.next.startMs, info.next.stopMs)})` : '';
       }
 
-      // ============================
-      // Duplicate Detection & Cleanup
-      // ============================
       function analyzeDuplicates() {
         const urlCounts = new Map(), nameCounts = new Map();
         for (const ch of state.channels) {
@@ -1712,15 +1751,15 @@
         showToast(removedCount > 0 ? t('toastDedupRemoved', { count: fmtNum(removedCount) }) : t('toastDedupNone'));
       }
 
-      // ============================
-      // Dead Link Detection & Removal
-      // ============================
       function getStatusDisplayText(ch) {
         if (ch.linkStatus === 'testing') return t('statusTesting');
         const detail = ch.linkDetailKey ? t(ch.linkDetailKey) : ch.linkDetailRaw;
         if (ch.linkStatus === 'active') return detail ? `${t('statusActive')} · ${detail}` : t('statusActive');
         if (ch.linkStatus === 'dead') return detail ? `${t('statusDead')} · ${detail}` : t('statusDead');
-        if (ch.linkStatus === 'blocked') return detail ? `${t('statusBlocked')} · ${detail}` : t('statusBlocked');
+        if (ch.linkStatus === 'blocked') {
+          const base = state.localProxyActive ? t('statusBlockedWindows') : t('statusBlocked');
+          return detail ? `${base} · ${detail}` : base;
+        }
         return '';
       }
 
@@ -1731,10 +1770,43 @@
 
       async function checkSingleChannel(channel) {
         const prevStatus = channel.linkStatus, prevKey = channel.linkDetailKey, prevRaw = channel.linkDetailRaw;
+
+        // Option 2 : Test reel avec FFprobe si disponible et active
+        if (state.localProxyActive && state.localFfprobe && state.useFfprobe) {
+          channel.linkStatus = 'testing'; channel.linkDetailKey = ''; channel.linkDetailRaw = ''; updateChannelCardStatus(channel);
+          const controller = new AbortController(); state.scan.activeControllers.add(controller);
+          const timer = setTimeout(() => controller.abort(), 6000);
+          try {
+            const res = await fetch(`${window.location.origin}/probe-ffprobe?url=${encodeURIComponent(channel.url)}`, { signal: controller.signal, cache: 'no-store' });
+            const data = await res.json();
+            if (state.scan.stopRequested) { channel.linkStatus = prevStatus; channel.linkDetailKey = prevKey; channel.linkDetailRaw = prevRaw; updateChannelCardStatus(channel); return; }
+            if (data.ok) {
+              channel.linkStatus = 'active'; channel.linkDetailKey = ''; channel.linkDetailRaw = data.detail || 'FFprobe';
+              scheduleLiveActiveFilterRefresh();
+            } else {
+              channel.linkStatus = 'dead';
+              channel.linkDetailKey = data.timeout ? 'detailTimeout' : 'detailFfprobe';
+              channel.linkDetailRaw = '';
+            }
+          } catch (err) {
+            if (state.scan.stopRequested || err?.name === 'AbortError') {
+              channel.linkStatus = prevStatus; channel.linkDetailKey = prevKey; channel.linkDetailRaw = prevRaw;
+              updateChannelCardStatus(channel); return;
+            }
+            channel.linkStatus = 'dead'; channel.linkDetailKey = 'detailFfprobe'; channel.linkDetailRaw = '';
+          } finally { clearTimeout(timer); state.scan.activeControllers.delete(controller); }
+          updateChannelCardStatus(channel); updateScanSummary();
+          return;
+        }
+
+        // Option 1 : Sonde HTTP (via proxy Windows si actif, sinon navigateur direct)
         if (!/^https?:\/\//i.test(channel.url)) { channel.linkStatus = 'blocked'; channel.linkDetailKey = 'detailNonHttp'; channel.linkDetailRaw = ''; updateChannelCardStatus(channel); updateScanSummary(); return; }
-        if (window.location.protocol === 'https:' && channel.url.startsWith('http://')) { channel.linkStatus = 'blocked'; channel.linkDetailKey = 'detailMixedContent'; channel.linkDetailRaw = ''; updateChannelCardStatus(channel); updateScanSummary(); return; }
+        if (!state.localProxyActive && window.location.protocol === 'https:' && channel.url.startsWith('http://')) {
+          channel.linkStatus = 'blocked'; channel.linkDetailKey = 'detailMixedContent'; channel.linkDetailRaw = ''; updateChannelCardStatus(channel); updateScanSummary(); return;
+        }
         channel.linkStatus = 'testing'; channel.linkDetailKey = ''; channel.linkDetailRaw = ''; updateChannelCardStatus(channel);
         const startedAt = performance.now();
+        const fetchTarget = toProxyUrl(channel.url, true);
 
         async function runFetch(method) {
           const controller = new AbortController(); state.scan.activeControllers.add(controller);
@@ -1742,8 +1814,8 @@
           const timer = setTimeout(() => { timedOut = true; controller.abort(); }, SCAN_TIMEOUT_MS);
           try {
             const opts = { method, mode: 'cors', cache: 'no-store', signal: controller.signal };
-            if (method === 'GET') opts.headers = { Range: 'bytes=0-0' };
-            const res = await fetch(channel.url, opts);
+            if (method === 'GET' && !state.localProxyActive) opts.headers = { Range: 'bytes=0-0' };
+            const res = await fetch(fetchTarget, opts);
             try { if (res.body && typeof res.body.cancel === 'function') res.body.cancel().catch(() => {}); } catch {}
             return { res, timedOut: false, userAborted: false };
           } catch (err) {
@@ -1754,7 +1826,10 @@
 
         try {
           let outcome = await runFetch('HEAD');
-          if (!outcome.userAborted && !outcome.timedOut && outcome.res && (outcome.res.status === 405 || outcome.res.status === 501)) outcome = await runFetch('GET');
+          if (!outcome.userAborted && !outcome.timedOut && outcome.res && !outcome.res.ok && outcome.res.status !== 206) {
+            const getOutcome = await runFetch('GET');
+            if (!getOutcome.userAborted && (getOutcome.res || getOutcome.timedOut)) outcome = getOutcome;
+          }
           if (outcome.userAborted || state.scan.stopRequested) { channel.linkStatus = prevStatus; channel.linkDetailKey = prevKey; channel.linkDetailRaw = prevRaw; updateChannelCardStatus(channel); return; }
           if (outcome.timedOut) { channel.linkStatus = 'dead'; channel.linkDetailKey = 'detailTimeout'; channel.linkDetailRaw = ''; }
           else if (outcome.res) {
@@ -1828,13 +1903,14 @@
         el.btnRemoveDead.disabled = true; el.btnOpenDedup.disabled = true; el.btnOpenCleanNames.disabled = true; el.btnOpenBulkGroup.disabled = true; el.btnResetList.disabled = true; el.btnClearPlaylist.disabled = true;
         updateScanSummary();
         let cursor = 0;
+        const concurrency = (state.localProxyActive && state.localFfprobe && state.useFfprobe) ? SCAN_CONCURRENCY_FFPROBE : SCAN_CONCURRENCY_HTTP;
         async function worker() {
           while (!state.scan.stopRequested && cursor < targets.length) {
             const ch = targets[cursor++]; await checkSingleChannel(ch);
             if (!state.scan.stopRequested) { state.scan.done++; updateScanSummary(); }
           }
         }
-        await Promise.all(Array.from({ length: Math.min(SCAN_CONCURRENCY, targets.length) }, worker));
+        await Promise.all(Array.from({ length: Math.min(concurrency, targets.length) }, worker));
         if (liveActiveRefreshTimer) { clearTimeout(liveActiveRefreshTimer); liveActiveRefreshTimer = null; }
         state.scan.running = false; el.btnTestStreams.style.display = 'inline-flex'; el.btnStopTest.style.display = 'none';
         if (state.activeOnly) applyFilters(); else updateStats();
@@ -1881,7 +1957,17 @@
         return `${cleaned || 'chaine'}.m3u`;
       }
 
-      function sendChannelToPlayer(channel) {
+      async function sendChannelToPlayer(channel) {
+        if (state.localProxyActive && state.localPlayerName) {
+          try {
+            const res = await fetch(`${window.location.origin}/launch-player?url=${encodeURIComponent(channel.url)}`, { cache: 'no-store' });
+            const data = await res.json();
+            if (data && data.ok) {
+              showToast(t('toastLaunchedPlayer', { player: state.localPlayerName }));
+              return;
+            }
+          } catch {}
+        }
         const cleanChannelName = String(channel.name || t('unnamedChannel')).replace(/[\r\n]+/g, ' ').trim();
         const content = `#EXTM3U\n#EXTINF:-1,${cleanChannelName}\n${channel.url}\n`;
         const blob = new Blob([content], { type: 'audio/x-mpegurl' });
@@ -1893,9 +1979,6 @@
         showToast(t('toastSingleM3uDownloaded', { filename }));
       }
 
-      // ============================
-      // Loading & Multi-File Merging
-      // ============================
       function loadPlaylistText(text, sourceInfo) {
         if (state.scan.running) stopBatchStreamTest();
         try {
@@ -1957,20 +2040,14 @@
         for (const file of files) {
           try {
             const ext = file.name.includes('.') ? file.name.split('.').pop().toLowerCase() : '';
-            if (ext && !['m3u', 'm3u8', 'txt'].includes(ext)) {
-              errors.push(t('errUnsupportedFormat', { ext }));
-              continue;
-            }
+            if (ext && !['m3u', 'm3u8', 'txt'].includes(ext)) { errors.push(t('errUnsupportedFormat', { ext })); continue; }
             showAlert(t('infoReadingFile', { name: file.name, size: (file.size / (1024 * 1024)).toFixed(2) }), 'info');
             await new Promise((r) => setTimeout(r, 20));
-            const text = await readFileAsText(file);
-            const { channels, detectedEpgUrl } = parseM3U(text);
+            const { channels, detectedEpgUrl } = parseM3U(await readFileAsText(file));
             if (detectedEpgUrl && !lastDetectedEpg) lastDetectedEpg = detectedEpgUrl;
             for (const ch of channels) { ch.uid = baseList.length; baseList.push(ch); addedCount++; }
             loadedFiles++;
-          } catch (err) {
-            errors.push(t('errFileReadNamed', { name: file.name, msg: err.message || err }));
-          }
+          } catch (err) { errors.push(t('errFileReadNamed', { name: file.name, msg: err.message || err })); }
         }
 
         if (loadedFiles === 0) { if (errors.length) showAlert(errors[0]); return; }
@@ -2008,7 +2085,7 @@
         try { new URL(url); } catch { showAlert(t('errUrlMalformed')); return; }
         hideAlert(); el.btnLoadUrl.disabled = true; el.btnLoadUrl.textContent = t('loadingBtn');
         try {
-          const response = await fetch(url, { mode: 'cors' });
+          const response = await fetch(toProxyUrl(url), { mode: 'cors' });
           if (!response.ok) throw new Error(t('errUrlHttp', { status: response.status, statusText: response.statusText || t('errorWord') }));
           loadPlaylistText(await response.text(), { custom: url });
         } catch (err) {
@@ -2135,6 +2212,8 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         const pageItems = state.filtered.slice(start, end);
         const grid = document.createElement('div'); grid.className = 'channels-grid';
         const fragment = document.createDocumentFragment();
+        const playerLabel = state.localProxyActive && state.localPlayerName ? t('launchDirectBtn', { player: state.localPlayerName }) : t('sendToPlayerBtn');
+        const playerTitle = state.localProxyActive && state.localPlayerName ? t('launchDirectTitle', { player: state.localPlayerName }) : t('sendToPlayerTitle');
 
         for (const ch of pageItems) {
           const isFav = state.favorites.has(getFavoriteKey(ch)), isSelected = state.selected.has(ch.uid);
@@ -2197,7 +2276,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
           const actions = document.createElement('div'); actions.className = 'channel-actions';
           const testBtn = document.createElement('button'); testBtn.className = 'btn btn-xs test-btn'; testBtn.type = 'button'; testBtn.title = t('cardTestTitle'); testBtn.textContent = t('cardTestBtn');
           const copyBtn = document.createElement('button'); copyBtn.className = 'btn btn-xs copy-btn'; copyBtn.type = 'button'; copyBtn.title = t('cardCopyTitle'); copyBtn.textContent = t('cardCopyBtn');
-          const sendPlayerBtn = document.createElement('button'); sendPlayerBtn.className = 'btn btn-xs btn-success send-player-btn'; sendPlayerBtn.type = 'button'; sendPlayerBtn.title = t('sendToPlayerTitle'); sendPlayerBtn.textContent = t('sendToPlayerBtn');
+          const sendPlayerBtn = document.createElement('button'); sendPlayerBtn.className = 'btn btn-xs btn-success send-player-btn'; sendPlayerBtn.type = 'button'; sendPlayerBtn.title = playerTitle; sendPlayerBtn.textContent = playerLabel;
           const playBtn = document.createElement('button'); playBtn.className = 'btn btn-xs btn-primary play-btn'; playBtn.type = 'button'; playBtn.title = t('cardPlayTitle'); playBtn.textContent = t('cardPlayBtn');
           actions.append(testBtn, copyBtn, sendPlayerBtn, playBtn);
 
@@ -2230,7 +2309,6 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         if (state.activeChannel && state.activeChannel.uid === channel.uid) updatePlayerFavButton(channel);
       }
 
-      // Inline Double-Click Rename
       el.channelsContainer.addEventListener('dblclick', (e) => {
         const titleEl = e.target.closest('.channel-title');
         if (!titleEl) return;
@@ -2255,7 +2333,6 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         titleEl.replaceWith(input); input.focus(); input.select();
       });
 
-      // Drag & Drop Reorder
       el.channelsContainer.addEventListener('dragstart', (e) => {
         const card = e.target.closest('.channel-card');
         if (!card || e.target.closest('input, button, select, a')) { e.preventDefault(); return; }
@@ -2341,9 +2418,6 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         showToast(t('toastExported', { count: fmtNum(channels.length) }));
       }
 
-      // ============================
-      // Advanced HLS Preview Player
-      // ============================
       function setPlayerStatus(show, title = '', message = '') {
         el.playerStatus.classList.toggle('show', show); el.playerStatusTitle.textContent = title; el.playerStatusMessage.textContent = message;
       }
@@ -2411,6 +2485,26 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         } else el.audioSelect.style.display = 'none';
       }
 
+      function getHlsLoaderClass() {
+        if (!state.localProxyActive || !window.Hls) return window.Hls?.DefaultConfig?.loader;
+        const BaseLoader = window.Hls.DefaultConfig.loader;
+        return class ProxyHlsLoader extends BaseLoader {
+          load(context, config, callbacks) {
+            const originalUrl = context.url;
+            const proxied = toProxyUrl(originalUrl);
+            if (proxied !== originalUrl) {
+              context.url = proxied;
+              const origOnSuccess = callbacks.onSuccess;
+              callbacks.onSuccess = (response, stats, ctx, networkDetails) => {
+                response.url = originalUrl;
+                origOnSuccess(response, stats, ctx, networkDetails);
+              };
+            }
+            super.load(context, config, callbacks);
+          }
+        };
+      }
+
       function openPlayerModal(channel) {
         destroyHls(); state.activeChannel = channel; updatePlayerHeader(channel); updatePlayerEpgBar(channel);
         el.playerModal.classList.add('open');
@@ -2418,11 +2512,17 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         epgRefreshTimer = setInterval(() => { if (state.activeChannel && el.playerModal.classList.contains('open')) updatePlayerEpgBar(state.activeChannel); }, 30000);
         el.btnPlayerPip.disabled = !(document.pictureInPictureEnabled && !el.videoPlayer.disablePictureInPicture);
 
-        if (window.location.protocol === 'https:' && channel.url.startsWith('http://')) { setPlayerStatus(true, t('playerMixedTitle'), t('playerMixedMsg')); return; }
+        if (!state.localProxyActive && window.location.protocol === 'https:' && channel.url.startsWith('http://')) {
+          setPlayerStatus(true, t('playerMixedTitle'), t('playerMixedMsg')); return;
+        }
         const isHlsUrl = /\.m3u8(\?|$)/i.test(channel.url) || channel.url.includes('m3u8');
         if (window.Hls && Hls.isSupported() && (isHlsUrl || !channel.url.match(/\.(mp4|webm|ogg)(\?|$)/i))) {
           setPlayerStatus(true, t('playerConnectingTitle'), t('playerConnectingMsg'));
-          hlsInstance = new Hls({ enableWorker: window.location.protocol !== 'file:', lowLatencyMode: true });
+          hlsInstance = new Hls({
+            enableWorker: window.location.protocol !== 'file:',
+            lowLatencyMode: true,
+            loader: getHlsLoaderClass()
+          });
           hlsInstance.loadSource(channel.url); hlsInstance.attachMedia(el.videoPlayer);
           hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => { setPlayerStatus(false); el.badgeLive.style.display = 'inline-flex'; populateHlsSelectors(hlsInstance); el.videoPlayer.play().catch(() => {}); });
           hlsInstance.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
@@ -2438,7 +2538,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
             setPlayerStatus(true, t('playerErrorTitle'), msg); destroyHls();
           });
         } else if (el.videoPlayer.canPlayType('application/vnd.apple.mpegurl') || channel.url.match(/\.(mp4|webm|ogg)(\?|$)/i)) {
-          setPlayerStatus(false); el.videoPlayer.src = channel.url; el.videoPlayer.play().catch(() => {});
+          setPlayerStatus(false); el.videoPlayer.src = toProxyUrl(channel.url); el.videoPlayer.play().catch(() => {});
         } else setPlayerStatus(true, t('playerUnsupportedTitle'), t('playerUnsupportedMsg'));
       }
 
@@ -2494,9 +2594,6 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
         destroyHls(); state.activeChannel = null; el.modalChannelTitle.textContent = t('playerModalDefaultTitle'); el.modalChannelMeta.textContent = '';
       }
 
-      // ============================
-      // Event Listeners
-      // ============================
       el.btnLangToggle.addEventListener('click', toggleLanguage);
       el.btnPickFile.addEventListener('click', (e) => { e.stopPropagation(); el.fileInput.click(); });
       el.dropzone.addEventListener('click', () => el.fileInput.click());
@@ -2525,7 +2622,11 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       el.btnDemo.addEventListener('click', loadDemoPlaylist);
       el.alertClose.addEventListener('click', hideAlert);
 
-      // Bulk Group Modal
+      el.btnUseFfprobe.addEventListener('click', () => {
+        state.useFfprobe = !state.useFfprobe;
+        el.btnUseFfprobe.classList.toggle('active', state.useFfprobe);
+      });
+
       el.btnOpenBulkGroup.addEventListener('click', openBulkGroupModal);
       el.btnCloseBulkGroup.addEventListener('click', () => el.bulkGroupModal.classList.remove('open'));
       el.btnCancelBulkGroup.addEventListener('click', () => el.bulkGroupModal.classList.remove('open'));
@@ -2533,7 +2634,6 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       el.btnApplyBulkGroup.addEventListener('click', applyBulkGroupChange);
       el.bulkGroupNewInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyBulkGroupChange(); });
 
-      // Clean Names Modal
       el.btnOpenCleanNames.addEventListener('click', () => el.cleanNamesModal.classList.add('open'));
       el.btnCloseCleanNames.addEventListener('click', () => el.cleanNamesModal.classList.remove('open'));
       el.cleanNamesModal.addEventListener('click', (e) => { if (e.target === el.cleanNamesModal) el.cleanNamesModal.classList.remove('open'); });
@@ -2542,7 +2642,6 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       el.btnCleanCustom.addEventListener('click', () => bulkCleanNames('custom', el.customRemoveInput.value));
       el.customRemoveInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') bulkCleanNames('custom', el.customRemoveInput.value); });
 
-      // EPG Modal
       el.btnOpenEpg.addEventListener('click', () => { updateEpgUiStatus(); el.epgModal.classList.add('open'); });
       el.btnCloseEpg.addEventListener('click', () => el.epgModal.classList.remove('open'));
       el.btnFooterCloseEpg.addEventListener('click', () => el.epgModal.classList.remove('open'));
@@ -2558,7 +2657,6 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       el.epgUrlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLoadEpgUrl(false); });
       el.btnClearEpg.addEventListener('click', clearEpg);
 
-      // Help, Paste, Dedup Modals
       el.btnOpenHelp.addEventListener('click', () => el.helpModal.classList.add('open'));
       el.btnCloseHelp.addEventListener('click', () => el.helpModal.classList.remove('open'));
       el.btnFooterCloseHelp.addEventListener('click', () => el.helpModal.classList.remove('open'));
@@ -2576,7 +2674,6 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       el.btnDedupName.addEventListener('click', () => deduplicateChannels('name'));
       el.btnDedupBoth.addEventListener('click', () => deduplicateChannels('both'));
 
-      // Scanner & Filters
       el.btnTestStreams.addEventListener('click', startBatchStreamTest);
       el.btnStopTest.addEventListener('click', stopBatchStreamTest);
       el.btnRemoveDead.addEventListener('click', removeDeadLinks);
@@ -2616,7 +2713,6 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       el.btnNextPage.addEventListener('click', () => goToPage(state.page + 1));
       el.btnLastPage.addEventListener('click', () => goToPage(Math.max(1, Math.ceil(state.filtered.length / state.pageSize))));
 
-      // Player Controls
       el.videoPlayer.addEventListener('loadedmetadata', updateResolutionBadge);
       el.videoPlayer.addEventListener('resize', updateResolutionBadge);
       el.qualitySelect.addEventListener('change', (e) => { if (hlsInstance) hlsInstance.currentLevel = Number(e.target.value); });
@@ -2667,6 +2763,7 @@ https://test-streams.mux.dev/flux-inexistant-404/stream.m3u8`;
       updateStats();
       updateScanSummary();
       renderChannelPage();
+      detectLocalWindowsProxy();
     })();
   </script>
 </body>
